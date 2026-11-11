@@ -7,11 +7,18 @@ public class Attendee {
     @ObjectId
     @Id
     public String attendeeId;
+
     public String name;
+    public String documentNumber; // "123456789"
+    public String email;
+
     @Override
-    public String toString(){
+    public String toString() {
         return "Attendee{" +
-                "id=" + attendeeId + "," +
-                "name=" + name + "}" ;
+                "id='" + attendeeId + '\'' +
+                ", name='" + name + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

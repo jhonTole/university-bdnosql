@@ -17,6 +17,12 @@ repositories {
     mavenCentral()
 }
 
+java {
+    // fija la versión de Java en el proyecto
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -28,7 +34,8 @@ dependencies {
 }
 
 javafx {
-    version = "24"
+    // version anterior al proyecto es la "24" cerrado
+    version = "21.0.6"
     modules("javafx.controls")
 }
 

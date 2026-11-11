@@ -5,10 +5,13 @@ import dev.integrador.university.entities.Event;
 import org.bson.UuidRepresentation;
 import org.mongojack.JacksonMongoCollection;
 
-public class UniversityRepository {
+import java.util.ArrayList;
+import java.util.List;
+
+public class EventRepository {
     private final String COLLECTION_NAME = "events";
     private final JacksonMongoCollection<Event> collection;
-    public UniversityRepository(MongoDatabase database){
+    public EventRepository(MongoDatabase database){
         this.collection = JacksonMongoCollection
                 .builder()
                 .build(
@@ -18,4 +21,5 @@ public class UniversityRepository {
                         UuidRepresentation.STANDARD
                 );
     }
+    public List<Event> findAll(){return collection.find().into(new ArrayList<>());}
 }
