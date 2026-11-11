@@ -1,10 +1,13 @@
 package dev.integrador.university.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.mongojack.Id;
 import org.mongojack.ObjectId;
 
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+// Sirve como un "escudo". Si alguien en el equipo agrega un campo nuevo a MongoDB
 public class Event {
     @ObjectId
     @Id
@@ -13,8 +16,8 @@ public class Event {
     public String description;
     public String category;
     public Date date; // antes createdAt
-    public Date startTime;
-    public Date endTime;
+    public String startTime;
+    public String endTime;
     public Integer capacity;
     @ObjectId // ahora se guarda como ObjectId real
     public String venueId;
