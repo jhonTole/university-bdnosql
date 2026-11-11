@@ -11,13 +11,13 @@ public class Registration {
     public String registrationId;
 
     @ObjectId
-    public String attendeeId; // Mapeado a ObjectId real
+    public String attendeeId;
 
     @ObjectId
-    public String eventId;    // Mapeado a ObjectId real
+    public String eventId;
 
     public Date registrationDate;
-    public String status;     // "Activa", "Cancelada", etc.
+    public String status;
 
     @Override
     public String toString() {
