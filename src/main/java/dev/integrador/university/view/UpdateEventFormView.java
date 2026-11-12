@@ -4,13 +4,12 @@ import dev.integrador.university.entities.Event;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.Node;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -51,6 +50,18 @@ public class UpdateEventFormView implements Builder<Region> {
         return field;
     }
 
+    private Node createTimeCombo(StringProperty property) {
+        ObservableList<String> slots = FXCollections.observableArrayList();
+        for (int h = 0; h < 24; h++) {
+            slots.add(String.format("%02d:00", h));
+            slots.add(String.format("%02d:30", h));
+        }
+        ComboBox<String> combo = new ComboBox<>(slots);
+        combo.setMaxWidth(Double.MAX_VALUE);
+        combo.valueProperty().bindBidirectional(property);
+        return combo;
+    }
+
     private Node createDateField() {
         DatePicker dateField = new DatePicker();
         dateField.setValue(date);
@@ -74,16 +85,16 @@ public class UpdateEventFormView implements Builder<Region> {
                 createTextField(category),
                 new Label("Fecha del evento:"),
                 createDateField(),
-                new Label("Hora de inicio (ej. 08:00):"),
-                createTextField(startTime),
-                new Label("Hora de fin (ej. 12:00):"),
-                createTextField(endTime),
+                new Label("Hora de inicio:"),
+                createTimeCombo(startTime),     // antes: createTextField(startTime)
+                new Label("Hora de fin:"),
+                createTimeCombo(endTime),
                 createErrorMessageLabel(),
                 createSubmitButton()
         );
 
         form.setSpacing(8);
-        form.setPadding(new Insets(8));
+        form.setPadding(new Insets(30));
         form.setPrefWidth(360);
 
         return form;

@@ -30,10 +30,12 @@ public class FXApplication extends Application {
 
             EventController controller = new EventController(repository);
 
-            Scene scene = new Scene(controller.getView());
+            Scene scene = new Scene(controller.getView(), 1070, 600); // dimensiones px de la pantalla
 
-            primaryStage.setTitle("University"); // añade titulo a la pestaña
+            primaryStage.setTitle("Universidad Santo Tomas"); // titulo de la pestaña
             primaryStage.setScene(scene);
+            primaryStage.setMinWidth(800);   // opcional: tamaño mínimo al redimensionar
+            primaryStage.setMinHeight(450);
             primaryStage.show();
 
         } catch (Exception e){

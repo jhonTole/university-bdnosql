@@ -4,13 +4,12 @@ import dev.integrador.university.entities.Event;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -20,9 +19,12 @@ import java.util.Date;
 
 public class NewEventFormView implements Builder<Region> {
     private final EventService service;
+
     private final StringProperty name = new SimpleStringProperty("");
     private final StringProperty description = new SimpleStringProperty("");
     private final StringProperty category = new SimpleStringProperty("");
+    private final StringProperty startTime = new SimpleStringProperty("08:00");
+    private final StringProperty endTime = new SimpleStringProperty("10:00");
     private LocalDate date = LocalDate.now();
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
@@ -36,16 +38,31 @@ public class NewEventFormView implements Builder<Region> {
         nameField.textProperty().bindBidirectional(name);
         return nameField;
     }
+
     private Node createDescriptionField() {
         TextField descriptionField = new TextField();
         descriptionField.textProperty().bindBidirectional(description);
         return descriptionField;
     }
+
     private Node createCategoryField() {
         TextField categoryField = new TextField();
         categoryField.textProperty().bindBidirectional(category);
         return categoryField;
     }
+
+    private Node createTimeCombo(StringProperty property) {
+        ObservableList<String> slots = FXCollections.observableArrayList();
+        for (int h = 0; h < 24; h++) {
+            slots.add(String.format("%02d:00", h));
+            slots.add(String.format("%02d:30", h));
+        }
+        ComboBox<String> combo = new ComboBox<>(slots);
+        combo.setMaxWidth(Double.MAX_VALUE);
+        combo.valueProperty().bindBidirectional(property);
+        return combo;
+    }
+
     private Node createDateField() {
         DatePicker dateField = new DatePicker();
         dateField.setValue(date);
@@ -54,6 +71,7 @@ public class NewEventFormView implements Builder<Region> {
         });
         return dateField;
     }
+
     private Node createErrorMessageLabel(){
         Label errorMessageLabel = new Label("");
         errorMessageLabel.textProperty().bindBidirectional(errorMessage);
@@ -78,17 +96,22 @@ public class NewEventFormView implements Builder<Region> {
                 descriptionField,
                 new Label("Categoria:"),
                 categoryField,
+                new Label("Hora de inicio:"),
+                createTimeCombo(startTime),
+                new Label("Hora de fin:"),
+                createTimeCombo(endTime),
                 new Label("Fecha de Evento"),
                 dateField,
                 errorMessageLabel,
                 submitButton
         );
 
-        form.setSpacing(8);
-        form.setPadding(new Insets(8));
+        form.setSpacing(10);
+        form.setPadding(new Insets(30)); // tamaño de la pestaña emergente
 
         return form;
     }
+
     private Node createSubmitButton() {
         Button submitButton = new Button("Crear Evento");
 
@@ -98,6 +121,8 @@ public class NewEventFormView implements Builder<Region> {
             events.name = name.getValue();
             events.description = description.getValue();
             events.category = category.getValue();
+            events.startTime = startTime.getValue();
+            events.endTime = endTime.getValue();
             events.date = convertLocalDateToDate(date);
 
             try {
@@ -116,6 +141,7 @@ public class NewEventFormView implements Builder<Region> {
 
         return submitButton;
     }
+
     private void closeWindowFrom(ActionEvent event){
         ((Node)(event.getSource())).getScene().getWindow().hide();
     }

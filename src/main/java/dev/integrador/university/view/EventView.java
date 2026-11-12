@@ -40,13 +40,13 @@ public class EventView implements Builder<Region> {
                 updateEventButton,
                 deleteEventButton
         );
-        navigationBarHBox.setPadding(new Insets(8));
+        navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
 
         // VBox organiza su contenido verticalmente
         return new VBox(
-                table,
-                navigationBarHBox
+                navigationBarHBox,
+                table
         );
     }
 
@@ -74,10 +74,19 @@ public class EventView implements Builder<Region> {
         descriptionColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().description));
         tableView.getColumns().add(descriptionColumn);
 
-        TableColumn<Event, String> dateColumn = new TableColumn<>("Fecha de creación");
+        TableColumn<Event, String> startColumn = new TableColumn<>("Inicio");
+        startColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().startTime));
+        tableView.getColumns().add(startColumn);
+
+        TableColumn<Event, String> endColumn = new TableColumn<>("Fin");
+        endColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().endTime));
+        tableView.getColumns().add(endColumn);
+
+        TableColumn<Event, String> dateColumn = new TableColumn<>("Fecha");
         dateColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(
                 p.getValue().date == null ? "" : p.getValue().date.toString()
         ));
+
         tableView.getColumns().add(dateColumn);
 
         tableView.setItems(model.events);
@@ -88,7 +97,7 @@ public class EventView implements Builder<Region> {
         Stage model = new Stage();
 
         model.initModality(Modality.APPLICATION_MODAL);
-        model.setTitle("Crear Evento - university");
+        model.setTitle("Crear Evento - Universidad");
 
         NewEventFormView newBookForm = new NewEventFormView(service);
         model.setScene(new Scene(newBookForm.build()));
