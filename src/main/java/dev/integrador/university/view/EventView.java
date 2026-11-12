@@ -6,11 +6,16 @@ import dev.integrador.university.service.EventService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Builder;
 
 public class EventView implements Builder<Region> {
@@ -25,12 +30,16 @@ public class EventView implements Builder<Region> {
     @Override
     public Region build() {
         Node table = createEventsTable();
-        /*
+
         Node newEventButton = createNewEventButton();
         Node deleteEventButton = createDeleteEventButton();
         Node updateEventButton = createUpdateEventButton();
-         */
-        HBox navigationBarHBox = new HBox();
+
+        HBox navigationBarHBox = new HBox(
+                newEventButton,
+                updateEventButton,
+                deleteEventButton
+        );
         navigationBarHBox.setPadding(new Insets(8));
         navigationBarHBox.setSpacing(8);
 
@@ -50,7 +59,7 @@ public class EventView implements Builder<Region> {
         );
 
         TableColumn<Event, String> idColumn = new TableColumn<>("ID");
-        idColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().eventsId));
+        idColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().eventId));
         tableView.getColumns().add(idColumn);
 
         TableColumn<Event, String> nameColumn = new TableColumn<>("Nombre");
@@ -74,5 +83,76 @@ public class EventView implements Builder<Region> {
         tableView.setItems(model.events);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
+    }
+    private Stage createNewEventModal(){
+        Stage model = new Stage();
+
+        model.initModality(Modality.APPLICATION_MODAL);
+        model.setTitle("Crear Evento - university");
+
+        NewEventFormView newBookForm = new NewEventFormView(service);
+        model.setScene(new Scene(newBookForm.build()));
+
+        return model;
+    }
+
+    private Node createNewEventButton(){
+        Button button = new Button("Crear Evento");
+        Stage newBookModal = createNewEventModal();
+        button.setOnAction(event -> {
+            newBookModal.showAndWait();
+        });
+        return button;
+    }
+
+    private Node createUpdateEventButton(){
+        Button button = new Button("Actualizar evento");
+
+        button.disableProperty().bind(model.selectedEvent.isNull());
+
+        button.setOnAction(event -> {
+            Event selectedEvent = model.selectedEvent.get();
+            Stage updateBookModal = createUpdateEventModal(selectedEvent);
+            updateBookModal.showAndWait();
+        });
+
+        return button;
+    }
+
+    private Stage createUpdateEventModal(Event eventToUpdate){
+        Stage modal = new Stage();
+        // stage = ventana
+        modal.initModality(Modality.APPLICATION_MODAL);
+        modal.setTitle("Actualizar evento - Univesidad");
+
+        UpdateEventFormView updateEventFormView = new UpdateEventFormView(service, eventToUpdate);
+
+        modal.setScene(new Scene(updateEventFormView.build()));
+
+        return modal;
+    }
+
+    private Node createDeleteEventButton(){
+        Button button = new Button("borrar");
+        button.disableProperty().bind(
+                model.selectedEvent.isNull()
+        );
+
+        button.setOnAction(event -> {
+            deleteEvent(model.selectedEvent.get().eventId);
+            service.findAllEvents();
+        });
+
+        return button;
+    }
+
+    private void deleteEvent(String eventId){
+        Event event = model.selectedEvent.get();
+        service.removeEventById(event.eventId);
+
+        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+        successAlert.setTitle("Evento eliminado");
+        successAlert.setHeaderText("Evento "+ event.name + " Eliminado exitosamente");
+        successAlert.showAndWait();
     }
 }

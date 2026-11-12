@@ -14,7 +14,7 @@ public class FXApplication extends Application {
     public static final String MONGODB_URI = System.getenv().getOrDefault(
             "MONGODB_URI",
             "mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000"
-    ); //Con eso la alerta sale en 3 segundos, y además cada quien puede cambiar la URI sin tocar el código si lo necesita.
+    ); // Con eso la alerta sale en 3 segundos, y además cada quien puede cambiar la URI sin tocar el código si lo necesita.
     private MongoClient mongoClient;
 
     public static void main(String[] args) {

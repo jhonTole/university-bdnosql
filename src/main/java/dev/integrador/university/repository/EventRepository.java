@@ -22,4 +22,9 @@ public class EventRepository {
                 );
     }
     public List<Event> findAll(){return collection.find().into(new ArrayList<>());}
+    public void save(Event event){collection.insert(event);}
+    public Event findById(String id){return collection.findOneById(id);}
+    public Long getCount() {return collection.countDocuments();}
+    public void removeEventById(String eventId){collection.removeById(eventId);}
+    public void update(Event event){collection.replaceOneById(event.eventId,event);}
 }

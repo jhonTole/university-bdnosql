@@ -11,7 +11,7 @@ import java.util.Date;
 public class Event {
     @ObjectId
     @Id
-    public String eventsId;
+    public String eventId;
     public String name;
     public String description;
     public String category;
@@ -26,7 +26,7 @@ public class Event {
     public String toString(){
 
         return "Event{" +
-                "id=" + eventsId + "," +
+                "id=" + eventId + "," +
                 "name=" + name + "," +
                 "genre=" + category + "," +
                 "author=" + description + "," +
