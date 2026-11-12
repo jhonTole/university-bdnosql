@@ -9,7 +9,7 @@ public class Attendee {
     public String attendeeId;
 
     public String name;
-    public String documentNumber; // "123456789"
+    public String documentNumber;
     public String email;
 
     @Override

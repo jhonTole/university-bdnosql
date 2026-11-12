@@ -93,23 +93,24 @@ public class EventView implements Builder<Region> {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
     }
+
     private Stage createNewEventModal(){
         Stage model = new Stage();
 
         model.initModality(Modality.APPLICATION_MODAL);
         model.setTitle("Crear Evento - Universidad");
 
-        NewEventFormView newBookForm = new NewEventFormView(service);
-        model.setScene(new Scene(newBookForm.build()));
+        NewEventFormView newEventForm = new NewEventFormView(service);
+        model.setScene(new Scene(newEventForm.build()));
 
         return model;
     }
 
     private Node createNewEventButton(){
         Button button = new Button("Crear Evento");
-        Stage newBookModal = createNewEventModal();
+        Stage newEventModal = createNewEventModal();
         button.setOnAction(event -> {
-            newBookModal.showAndWait();
+            newEventModal.showAndWait();
         });
         return button;
     }
@@ -121,8 +122,8 @@ public class EventView implements Builder<Region> {
 
         button.setOnAction(event -> {
             Event selectedEvent = model.selectedEvent.get();
-            Stage updateBookModal = createUpdateEventModal(selectedEvent);
-            updateBookModal.showAndWait();
+            Stage updateEventModal = createUpdateEventModal(selectedEvent);
+            updateEventModal.showAndWait();
         });
 
         return button;
@@ -161,7 +162,7 @@ public class EventView implements Builder<Region> {
 
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Evento eliminado");
-        successAlert.setHeaderText("Evento "+ event.name + " Eliminado exitosamente");
+        successAlert.setHeaderText("Evento " + event.name + " Eliminado exitosamente");
         successAlert.showAndWait();
     }
 }
