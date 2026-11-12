@@ -2,7 +2,7 @@ package dev.integrador.university.controller;
 
 import dev.integrador.university.model.EventModel;
 import dev.integrador.university.repository.EventRepository;
-import dev.integrador.university.view.EventView;
+import dev.integrador.university.view.event.EventView;
 import javafx.scene.layout.Region;
 import dev.integrador.university.service.EventService;
 

@@ -1,4 +1,4 @@
-package dev.integrador.university.view;
+package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
 import dev.integrador.university.service.EventService;

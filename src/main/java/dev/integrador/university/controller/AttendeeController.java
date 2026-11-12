@@ -3,7 +3,7 @@ package dev.integrador.university.controller;
 import dev.integrador.university.model.AttendeeModel;
 import dev.integrador.university.repository.AttendeeRepository;
 import dev.integrador.university.service.AttendeeService;
-import dev.integrador.university.view.AttendeeView;
+import dev.integrador.university.view.attendee.AttendeeView;
 import javafx.scene.layout.Region;
 
 public class AttendeeController {

@@ -1,4 +1,4 @@
-package dev.integrador.university.view;
+package dev.integrador.university.view.attendee;
 
 import dev.integrador.university.entities.Attendee;
 import dev.integrador.university.model.AttendeeModel;
