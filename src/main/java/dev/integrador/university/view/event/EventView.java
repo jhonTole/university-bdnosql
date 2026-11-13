@@ -117,11 +117,17 @@ public class EventView implements Builder<Region> {
     }
 
     private Node createNewEventButton(){
-        Button button = new Button("Crear Evento");
+        Button button = new Button("+ Crear Evento");
         Stage newEventModal = createNewEventModal();
         button.setOnAction(event -> {
             newEventModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #007BFF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
         return button;
     }
 
@@ -129,12 +135,17 @@ public class EventView implements Builder<Region> {
         Button button = new Button("Actualizar Evento");
 
         button.disableProperty().bind(model.selectedEvent.isNull());
-
         button.setOnAction(event -> {
             Event selectedEvent = model.selectedEvent.get();
             Stage updateEventModal = createUpdateEventModal(selectedEvent);
             updateEventModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #F0AD4E;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
 
         return button;
     }
@@ -154,8 +165,12 @@ public class EventView implements Builder<Region> {
 
     private Node createDeleteEventButton(){
         Button button = new Button("borrar");
-        button.disableProperty().bind(
-                model.selectedEvent.isNull()
+        button.disableProperty().bind(model.selectedEvent.isNull());
+        button.setStyle(
+                "-fx-background-color: #DC3545;" +
+                        "-fx-text-fill: white;" + // texto
+                        "-fx-font-weight: bold;" + // fondo
+                        "-fx-background-radius: 5;"
         );
 
         button.setOnAction(event -> {

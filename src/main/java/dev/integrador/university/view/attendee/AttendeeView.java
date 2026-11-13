@@ -97,11 +97,17 @@ public class AttendeeView implements Builder<Region> {
     }
 
     private Node createNewAttendeeButton(){
-        Button button = new Button("Crear Asistente");
+        Button button = new Button("+ Crear Asistente");
         Stage newAttendeeButton = createNewAttendeeModal();
         button.setOnAction(event -> {
             newAttendeeButton.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #007BFF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
         return button;
     }
 
@@ -109,13 +115,17 @@ public class AttendeeView implements Builder<Region> {
         Button button = new Button("Actualizar asistente");
 
         button.disableProperty().bind(model.selectedAttendee.isNull());
-
         button.setOnAction(event -> {
             Attendee selectedAttendee = model.selectedAttendee.get();
             Stage updateAttendeeModal = createUpdateAttendeeModal(selectedAttendee);
             updateAttendeeModal.showAndWait();
         });
-
+        button.setStyle(
+                "-fx-background-color: #F0AD4E;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
         return button;
     }
 
@@ -137,7 +147,12 @@ public class AttendeeView implements Builder<Region> {
         button.disableProperty().bind(
                 model.selectedAttendee.isNull()
         );
-
+        button.setStyle(
+                "-fx-background-color: #DC3545;" +
+                        "-fx-text-fill: white;" + // texto
+                        "-fx-font-weight: bold;" + // fondo
+                        "-fx-background-radius: 5;"
+        );
         button.setOnAction(attendee -> {
             deleteAttendee(model.selectedAttendee.get().attendeeId);
             service.findAllAttendees();

@@ -99,11 +99,17 @@ public class VenueView implements Builder<Region> {
     }
 
     private Node createNewVenueButton(){
-        Button button = new Button("Crear Espacio");
+        Button button = new Button("+ Crear Espacio");
         Stage newVenueModal = createNewVenueModal();
         button.setOnAction(venue -> {
             newVenueModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #007BFF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
         return button;
     }
 
@@ -111,12 +117,17 @@ public class VenueView implements Builder<Region> {
         Button button = new Button("Actualizar Espacio");
 
         button.disableProperty().bind(model.selectedVenue.isNull());
-
         button.setOnAction(venue -> {
             Venue selectedVenue = model.selectedVenue.get();
             Stage updateVenueModal = createUpdateVenueModal(selectedVenue);
             updateVenueModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #F0AD4E;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
 
         return button;
     }
@@ -138,6 +149,12 @@ public class VenueView implements Builder<Region> {
         Button button = new Button("borrar");
         button.disableProperty().bind(
                 model.selectedVenue.isNull()
+        );
+        button.setStyle(
+                "-fx-background-color: #DC3545;" +
+                        "-fx-text-fill: white;" + // texto
+                        "-fx-font-weight: bold;" + // fondo
+                        "-fx-background-radius: 5;"
         );
 
         button.setOnAction(venue -> {

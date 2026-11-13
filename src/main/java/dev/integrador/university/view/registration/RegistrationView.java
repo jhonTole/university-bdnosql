@@ -97,11 +97,17 @@ public class RegistrationView implements Builder<Region> {
     }
 
     private Node createNewRegistrationButton(){
-        Button button = new Button("Crear Registro");
+        Button button = new Button("+ Crear Registro");
         Stage newRegistrationModal = createNewRegistrationModal();
         button.setOnAction(registration -> {
             newRegistrationModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #007BFF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
         return button;
     }
 
@@ -109,12 +115,17 @@ public class RegistrationView implements Builder<Region> {
         Button button = new Button("Actualizar Registro");
 
         button.disableProperty().bind(model.selectedRegistration.isNull());
-
         button.setOnAction(registration -> {
             Registration selectedRegistration = model.selectedRegistration.get();
             Stage updateRegistrationModal = createUpdateRegistrationModal(selectedRegistration);
             updateRegistrationModal.showAndWait();
         });
+        button.setStyle(
+                "-fx-background-color: #F0AD4E;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 5;"
+        );
 
         return button;
     }
@@ -137,7 +148,12 @@ public class RegistrationView implements Builder<Region> {
         button.disableProperty().bind(
                 model.selectedRegistration.isNull()
         );
-
+        button.setStyle(
+                "-fx-background-color: #DC3545;" +
+                        "-fx-text-fill: white;" + // texto
+                        "-fx-font-weight: bold;" + // fondo
+                        "-fx-background-radius: 5;"
+        );
         button.setOnAction(registration -> {
             deleteRegistration(model.selectedRegistration.get().eventId);
             service.findAllRegistrations();
