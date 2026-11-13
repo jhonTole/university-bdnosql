@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -66,13 +67,13 @@ public class NewVenueFormView implements Builder<Region> {
 
     @Override
     public Region build() {
+
         Node nameField = createNameField();
         Node typeField = createTypeField();
         Node capacityField = createCapacityField();
-
         Node errorMessageLabel = createErrorMessageLabel();
 
-        Node submitButton = createSubmitButton();
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
 
         VBox form = new VBox(
                 new Label("Nombre:"),
@@ -82,7 +83,7 @@ public class NewVenueFormView implements Builder<Region> {
                 new Label("Capacidad:"),
                 capacityField,
                 errorMessageLabel,
-                submitButton
+                buttons
         );
 
         form.setSpacing(8); // Entrespaciado
@@ -94,7 +95,8 @@ public class NewVenueFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Crear Espacio");
+        Button submitButton = new Button("+ Añadir Espacio");
+        submitButton.getStyleClass().addAll("btn-create","sub-btn");
 
         submitButton.setOnAction(venue -> {
         try {
@@ -120,6 +122,15 @@ public class NewVenueFormView implements Builder<Region> {
     });
 
         return submitButton;
+    }
+
+    private Node createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> closeWindowFrom(event));
+
+        return button;
     }
 
     private void closeWindowFrom(ActionEvent event){

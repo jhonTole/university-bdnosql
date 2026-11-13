@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -69,6 +70,8 @@ public class UpdateVenueFormView implements Builder<Region> {
 
     @Override
     public Region build() {
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+
         VBox form = new VBox(
                 new Label("Nombre:"),
                 createTextField(name),
@@ -77,7 +80,7 @@ public class UpdateVenueFormView implements Builder<Region> {
                 new Label("Capacity:"),
                 createCapacityField(),
                 createErrorMessageLabel(),
-                createSubmitButton()
+                buttons
         );
 
         form.setSpacing(8);
@@ -91,11 +94,12 @@ public class UpdateVenueFormView implements Builder<Region> {
 
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Actualizar Espacio");
+        Button submitButton = new Button("Guardar Cambios");
+        submitButton.getStyleClass().add("btn-save");
 
         submitButton.setOnAction(venue -> {
             try {
-                Venue updated = new Venue(); // Crear una copia para no modificar el objeto original                                         // Crear una copia para no modificar el objeto original
+                Venue updated = new Venue(); // Crear una copia para no modificar el objeto original
                 updated.venueId = venueToUpdate.venueId;
 
                 updated.name = name.getValue();
@@ -120,6 +124,15 @@ public class UpdateVenueFormView implements Builder<Region> {
         });
 
         return submitButton;
+    }
+
+    private Node createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> closeWindowFrom(event));
+
+        return button;
     }
 
 

@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -59,7 +60,7 @@ public class NewAttendeeFormView implements Builder<Region> {
 
         Node errorMessageLabel = createErrorMessageLabel();
 
-        Node submitButton = createSubmitButton();
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
 
         VBox form = new VBox(
                 new Label("Nombre:"),
@@ -69,7 +70,7 @@ public class NewAttendeeFormView implements Builder<Region> {
                 new Label("Correo:"),
                 emailField,
                 errorMessageLabel,
-                submitButton
+                buttons
         );
 
         form.setSpacing(8);
@@ -82,8 +83,8 @@ public class NewAttendeeFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Crear Asistente");
-
+        Button submitButton = new Button("+ Añadir Asistente");
+        submitButton.getStyleClass().addAll("btn-create","sub-btn");
         submitButton.setOnAction(attendee -> {
             Attendee attendees = new Attendee();
 
@@ -107,6 +108,16 @@ public class NewAttendeeFormView implements Builder<Region> {
 
         return submitButton;
     }
+
+    private Node createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> closeWindowFrom(event));
+
+        return button;
+    }
+
 
     private void closeWindowFrom(ActionEvent event){((Node)(event.getSource())).getScene().getWindow().hide();
     }

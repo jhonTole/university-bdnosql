@@ -7,6 +7,15 @@
     -fx-cursor: hand;
 }
 
+/* Ajustes para botones de formulario */
+.button.sub-btn {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
 .btn-update {
     -fx-background-color: #F0AD4E;
     -fx-text-fill: white;
@@ -15,12 +24,37 @@
     -fx-cursor: hand;
 }
 
+.btn-save {
+    -fx-background-color: #218838;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.btn-save:hover {
+    -fx-background-color: #19692C;
+}
+
 .btn-delete {
     -fx-background-color: #DC3545;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 5;
     -fx-cursor: hand;
+}
+
+.btn-cancel {
+    -fx-background-color: #E0E0E0;
+    -fx-text-fill: #212121;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.btn-cancel:hover {
+    -fx-background-color: #BDBDBD;
 }
 
 /* Estilo de botones deshabilitados */

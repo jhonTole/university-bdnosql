@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -45,6 +46,7 @@ public class UpdateRegistrationFormView implements Builder<Region> {
     private Node createRegistrationDateField() {
         DatePicker registrationDateField = new DatePicker();
         registrationDateField.setValue(registrationDate);
+        registrationDateField.setMaxWidth(Double.MAX_VALUE);
         registrationDateField.setOnAction(registration ->
                 registrationDate = registrationDateField.getValue());
         return registrationDateField;
@@ -58,13 +60,15 @@ public class UpdateRegistrationFormView implements Builder<Region> {
 
     @Override
     public Region build() {
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+
         VBox form = new VBox(
                 new Label("Estado:"),
                 createTextField(status),
                 new Label("Fecha de Registro:"),
                 createRegistrationDateField(),
                 createErrorMessageLabel(),
-                createSubmitButton()
+                buttons
         );
 
         form.setSpacing(8);
@@ -78,7 +82,8 @@ public class UpdateRegistrationFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Actualizar Registro");
+        Button submitButton = new Button("Guardar Cambios");
+        submitButton.getStyleClass().add("btn-save");
 
         submitButton.setOnAction(registration -> {
             // Copia para no modificar el objeto de la tabla si algo falla
@@ -105,6 +110,16 @@ public class UpdateRegistrationFormView implements Builder<Region> {
 
         return submitButton;
     }
+
+    private Node createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> closeWindowFrom(event));
+
+        return button;
+    }
+
 
     private void closeWindowFrom(ActionEvent event) {
         ((Node) (event.getSource())).getScene().getWindow().hide();

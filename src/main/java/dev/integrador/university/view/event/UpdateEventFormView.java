@@ -10,8 +10,11 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.Node;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Builder;
 
 import java.time.LocalDate;
@@ -88,6 +91,8 @@ public class UpdateEventFormView implements Builder<Region> {
     private Node createDateField() {
         DatePicker dateField = new DatePicker();
         dateField.setValue(date);
+        // Permite que crezca con el ancho del formulario.
+        dateField.setMaxWidth(Double.MAX_VALUE);
         dateField.setOnAction(event -> date = dateField.getValue());
         return dateField;
     }
@@ -100,6 +105,24 @@ public class UpdateEventFormView implements Builder<Region> {
 
     @Override
     public Region build() {
+        // Agrupan texto y su campo
+        VBox startGroup = new VBox(8, new Label("Fecha de Inicio:"), createTextField(startTime));
+        VBox endGroup = new VBox(8, new Label("Fecha de Fin:"), createTextField(endTime));
+
+        // Ambos reciben el mismo ancho.
+        startGroup.setPrefWidth(0);
+        endGroup.setPrefWidth(0);
+        startGroup.setMaxWidth(Double.MAX_VALUE);
+        endGroup.setMaxWidth(Double.MAX_VALUE);
+
+        // Agrupa horizontalmente de Izquierda a Derecha
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+        HBox times = new HBox(16, startGroup,endGroup);
+
+        // Ambos grupos aprovechan el espacio horizontal.
+        HBox.setHgrow(startGroup, Priority.ALWAYS);
+        HBox.setHgrow(endGroup, Priority.ALWAYS);
+
         VBox form = new VBox(
                 new Label("Nombre:"),
                 createTextField(name),
@@ -111,13 +134,9 @@ public class UpdateEventFormView implements Builder<Region> {
                 createCapacityField(),
                 new Label("Fecha del evento:"),
                 createDateField(),
-                new Label("Hora de inicio:"),
-                createTimeCombo(startTime),
-                new Label("Hora de fin:"),
-                createTimeCombo(endTime),
-
+                times,
                 createErrorMessageLabel(),
-                createSubmitButton()
+                buttons
         );
 
         form.setSpacing(8);
@@ -130,7 +149,8 @@ public class UpdateEventFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Actualizar Evento");
+        Button submitButton = new Button("Guardar Cambios");
+        submitButton.getStyleClass().add("btn-save");
 
         submitButton.setOnAction(event -> {
             try {// Copia para no modificar el objeto de la tabla si algo falla
@@ -163,6 +183,18 @@ public class UpdateEventFormView implements Builder<Region> {
         });
 
         return submitButton;
+    }
+
+    private Button createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> {
+            Stage modal = (Stage) button.getScene().getWindow();
+            modal.close();
+        });
+
+        return button;
     }
 
     private void closeWindowFrom(ActionEvent event) {

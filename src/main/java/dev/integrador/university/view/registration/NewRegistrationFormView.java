@@ -13,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
@@ -39,6 +40,7 @@ public class NewRegistrationFormView implements Builder<Region> {
     private Node createRegistrationDateField() {
         DatePicker registrationDateField = new DatePicker();
         registrationDateField.setValue(registrationDate);
+        registrationDateField.setMaxWidth(Double.MAX_VALUE);
         registrationDateField.setOnAction(registration->{
             registrationDate = registrationDateField.getValue();
         });
@@ -59,7 +61,8 @@ public class NewRegistrationFormView implements Builder<Region> {
 
         Node errorMessageLabel = createErrorMessageLabel();
 
-        Node submitButton = createSubmitButton();
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+
 
         VBox form = new VBox(
                 new Label("Estado:"),
@@ -67,7 +70,7 @@ public class NewRegistrationFormView implements Builder<Region> {
                 new Label("Fecha de Registro"),
                 registrationDateField,
                 errorMessageLabel,
-                submitButton
+                buttons
         );
 
         form.setSpacing(8);
@@ -80,7 +83,8 @@ public class NewRegistrationFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Crear Registro");
+        Button submitButton = new Button("+ Añadir Registro");
+        submitButton.getStyleClass().addAll("btn-create","sub-btn");
 
         submitButton.setOnAction(registration -> {
             Registration registrations = new Registration();
@@ -103,6 +107,15 @@ public class NewRegistrationFormView implements Builder<Region> {
         });
 
         return submitButton;
+    }
+
+    private Node createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> closeWindowFrom(event));
+
+        return button;
     }
 
     private void closeWindowFrom(ActionEvent event){

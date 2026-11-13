@@ -9,8 +9,10 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Builder;
 
 
@@ -48,6 +50,8 @@ public class UpdateAttendeeFormView implements Builder<Region> {
 
     @Override
     public Region build() {
+        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+
         VBox form = new VBox(
                 new Label("Nombre:"),
                 createTextField(name),
@@ -56,7 +60,7 @@ public class UpdateAttendeeFormView implements Builder<Region> {
                 new Label("Correo:"),
                 createTextField(email),
                 createErrorMessageLabel(),
-                createSubmitButton()
+                buttons
         );
 
         form.setSpacing(8);
@@ -70,7 +74,8 @@ public class UpdateAttendeeFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("Actualizar Asistente");
+        Button submitButton = new Button("Guardar Cambios");
+        submitButton.getStyleClass().add("btn-save");
 
         submitButton.setOnAction(attendee -> {
             // Copia para no modificar el objeto de la tabla si algo falla
@@ -94,6 +99,18 @@ public class UpdateAttendeeFormView implements Builder<Region> {
         });
 
         return submitButton;
+    }
+
+    private Button createCancelButton() {
+        Button button = new Button("Cancelar");
+        button.getStyleClass().add("btn-cancel");
+
+        button.setOnAction(event -> {
+            Stage modal = (Stage) button.getScene().getWindow();
+            modal.close();
+        });
+
+        return button;
     }
 
     private void closeWindowFrom(ActionEvent event) {
