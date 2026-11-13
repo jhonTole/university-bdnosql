@@ -1,6 +1,5 @@
 package dev.integrador.university.view.venue;
 
-import dev.integrador.university.entities.Event;
 import dev.integrador.university.entities.Venue;
 import dev.integrador.university.service.VenueService;
 import javafx.beans.property.SimpleStringProperty;
@@ -96,6 +95,7 @@ public class NewVenueFormView implements Builder<Region> {
 
     private Node createSubmitButton() {
         Button submitButton = new Button("Crear Espacio");
+
         submitButton.setOnAction(venue -> {
         try {
             Venue venues = new Venue();
@@ -110,14 +110,13 @@ public class NewVenueFormView implements Builder<Region> {
             closeWindowFrom(venue);
 
         } catch (NumberFormatException e) {
-            errorMessage.setValue(
-                    "Ingrese una capacidad numérica válida"
-            );
+            errorMessage.setValue("Ingrese una capacidad numérica válida");
 
         } catch (Exception e) {
             System.err.println(e);
             errorMessage.setValue(e.getMessage());
         }
+
     });
 
         return submitButton;

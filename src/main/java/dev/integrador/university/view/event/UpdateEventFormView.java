@@ -27,6 +27,7 @@ public class UpdateEventFormView implements Builder<Region> {
     private final StringProperty category = new SimpleStringProperty("");
     private final StringProperty startTime = new SimpleStringProperty("");
     private final StringProperty endTime = new SimpleStringProperty("");
+    private final StringProperty capacity = new SimpleStringProperty("");
     private LocalDate date = LocalDate.now();
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
@@ -41,7 +42,8 @@ public class UpdateEventFormView implements Builder<Region> {
         category.setValue(eventToUpdate.category);
         startTime.setValue(eventToUpdate.startTime);
         endTime.setValue(eventToUpdate.endTime);
-
+        capacity.setValue(eventToUpdate.capacity == null ? "" : eventToUpdate.capacity.toString());
+        // convierte Integer a String
         date = convertDateToLocalDate(eventToUpdate.date);
     }
 
@@ -61,6 +63,26 @@ public class UpdateEventFormView implements Builder<Region> {
         combo.setMaxWidth(Double.MAX_VALUE);
         combo.valueProperty().bindBidirectional(property);
         return combo;
+    }
+
+    private Node createCapacityField() {
+        TextField capacityField = new TextField();
+
+        capacityField.textProperty().bindBidirectional(capacity);
+
+        capacityField.setTextFormatter(
+                new TextFormatter<>(change -> {
+                    String text = change.getControlNewText();
+
+                    if (text.matches("\\d*")) {
+                        return change;
+                    }
+
+                    return null;
+                })
+        );
+
+        return capacityField;
     }
 
     private Node createDateField() {
@@ -85,12 +107,15 @@ public class UpdateEventFormView implements Builder<Region> {
                 createTextField(description),
                 new Label("Categoría:"),
                 createTextField(category),
+                new Label("Capacidad:"),
+                createCapacityField(),
                 new Label("Fecha del evento:"),
                 createDateField(),
                 new Label("Hora de inicio:"),
-                createTimeCombo(startTime),     // antes: createTextField(startTime)
+                createTimeCombo(startTime),
                 new Label("Hora de fin:"),
                 createTimeCombo(endTime),
+
                 createErrorMessageLabel(),
                 createSubmitButton()
         );
@@ -108,26 +133,29 @@ public class UpdateEventFormView implements Builder<Region> {
         Button submitButton = new Button("Actualizar Evento");
 
         submitButton.setOnAction(event -> {
-            // Copia para no modificar el objeto de la tabla si algo falla
-            Event updated = new Event();
+            try {// Copia para no modificar el objeto de la tabla si algo falla
+                Event updated = new Event();
 
-            // replaceOneById reemplaza TODO el documento: conservamos
-            // los campos que este formulario no edita
-            updated.eventId = eventToUpdate.eventId;
-            updated.capacity = eventToUpdate.capacity;
-            updated.venueId = eventToUpdate.venueId;
+                // replaceOneById reemplaza TODO el documento: conservamos
+                // los campos que este formulario no edita
+                updated.eventId = eventToUpdate.eventId;
+                updated.venueId = eventToUpdate.venueId;
 
-            updated.name = name.getValue();
-            updated.description = description.getValue();
-            updated.category = category.getValue();
-            updated.startTime = startTime.getValue();
-            updated.endTime = endTime.getValue();
-            updated.date = convertLocalDateToDate(date);
+                updated.name = name.getValue();
+                updated.description = description.getValue();
+                updated.category = category.getValue();
+                updated.startTime = startTime.getValue();
+                updated.endTime = endTime.getValue();
+                // Convertir String a Integer
+                updated.capacity = Integer.valueOf(capacity.getValue().trim());
+                updated.date = convertLocalDateToDate(date);
 
-            try {
                 service.updateEvent(updated);
                 service.findAllEvents();
                 closeWindowFrom(event);
+            } catch (NumberFormatException e) {
+                errorMessage.setValue("Ingrese una capacidad numérica válida");
+
             } catch (Exception e) {
                 System.err.println(e);
                 errorMessage.setValue(e.getMessage());

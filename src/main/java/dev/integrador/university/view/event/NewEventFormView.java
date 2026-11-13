@@ -23,6 +23,7 @@ public class NewEventFormView implements Builder<Region> {
     private final StringProperty name = new SimpleStringProperty("");
     private final StringProperty description = new SimpleStringProperty("");
     private final StringProperty category = new SimpleStringProperty("");
+    private final StringProperty capacity = new SimpleStringProperty("");
     private final StringProperty startTime = new SimpleStringProperty("08:00");
     private final StringProperty endTime = new SimpleStringProperty("10:00");
     private LocalDate date = LocalDate.now();
@@ -49,6 +50,27 @@ public class NewEventFormView implements Builder<Region> {
         TextField categoryField = new TextField();
         categoryField.textProperty().bindBidirectional(category);
         return categoryField;
+    }
+
+    private Node createCapacityField() {
+        TextField capacityField = new TextField();
+
+        capacityField.textProperty().bindBidirectional(capacity);
+
+        capacityField.setTextFormatter(
+                new TextFormatter<>(change -> {
+                    String text = change.getControlNewText();
+
+                    if (text.matches("\\d*")) {
+                        return change;
+                    }
+
+                    return null;
+                })
+        );
+        // Este método permite escribir únicamente dígitos, por ejemplo 10, 50 o 200.
+        // No permite escribir letras, decimales ni signos negativos.
+        return capacityField;
     }
 
     private Node createTimeCombo(StringProperty property) {
@@ -83,6 +105,7 @@ public class NewEventFormView implements Builder<Region> {
         Node nameField = createNameField();
         Node descriptionField = createDescriptionField();
         Node categoryField = createCategoryField();
+        Node capacityField = createCapacityField();
         Node dateField = createDateField();
 
         Node errorMessageLabel = createErrorMessageLabel();
@@ -96,6 +119,8 @@ public class NewEventFormView implements Builder<Region> {
                 descriptionField,
                 new Label("Categoria:"),
                 categoryField,
+                new Label("Capacidad:"),
+                capacityField,
                 new Label("Hora de inicio:"),
                 createTimeCombo(startTime),
                 new Label("Hora de fin:"),
@@ -107,7 +132,7 @@ public class NewEventFormView implements Builder<Region> {
         );
 
         form.setSpacing(8); // Entrespaciado
-        form.setPadding(new Insets(30, 25, 25, 30)); // Entrespaciado
+        form.setPadding(new Insets(30, 25, 25, 30));// Entrespaciado
 
         form.setPrefWidth(400);  // Ancho del formulario
         Region espacio = new Region();
@@ -120,21 +145,25 @@ public class NewEventFormView implements Builder<Region> {
         Button submitButton = new Button("Crear Evento");
 
         submitButton.setOnAction(event -> {
-            Event events = new Event();
-
-            events.name = name.getValue();
-            events.description = description.getValue();
-            events.category = category.getValue();
-            events.startTime = startTime.getValue();
-            events.endTime = endTime.getValue();
-            events.date = convertLocalDateToDate(date);
-
             try {
+                Event events = new Event();
+
+                events.name = name.getValue();
+                events.description = description.getValue();
+                events.category = category.getValue();
+                events.startTime = startTime.getValue();
+                events.endTime = endTime.getValue();
+                events.capacity = Integer.valueOf(capacity.getValue().trim());
+                events.date = convertLocalDateToDate(date);
+
                 service.createEvent(events);
 
                 service.findAllEvents();
 
                 closeWindowFrom(event);
+
+            } catch (NumberFormatException e) {
+                errorMessage.setValue("Ingrese una capacidad numérica válida");
 
             } catch (Exception e) {
                 System.err.println(e);

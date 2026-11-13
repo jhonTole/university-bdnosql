@@ -111,9 +111,7 @@ public class UpdateVenueFormView implements Builder<Region> {
                 closeWindowFrom(venue);
 
             } catch (NumberFormatException e) {
-                errorMessage.setValue(
-                        "Ingrese una capacidad numérica válida"
-                );
+                errorMessage.setValue("Ingrese una capacidad numérica válida");
 
             } catch (Exception e) {
                 System.err.println(e);

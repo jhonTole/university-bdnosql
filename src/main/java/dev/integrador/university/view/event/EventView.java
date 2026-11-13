@@ -1,6 +1,7 @@
 package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
 import dev.integrador.university.model.EventModel;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -12,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -45,19 +47,22 @@ public class EventView implements Builder<Region> {
         navigationBarHBox.setSpacing(8);
 
         // VBox organiza su contenido verticalmente
-        return new VBox(
+        VBox layout = new VBox(
                 navigationBarHBox,
                 table
         );
+
+        // Permitir que la tabla crezca verticalmente
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        return layout;
     }
 
     private Node createEventsTable() {
         TableView<Event> tableView = new TableView<>();
 
         // sincroniza la fila seleccionada con el modelo
-        model.selectedEvent.bind(
-                tableView.getSelectionModel().selectedItemProperty()
-        );
+        model.selectedEvent.bind(tableView.getSelectionModel().selectedItemProperty());
 
         TableColumn<Event, String> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().eventId));
@@ -83,11 +88,15 @@ public class EventView implements Builder<Region> {
         endColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().endTime));
         tableView.getColumns().add(endColumn);
 
+        TableColumn<Event, String> capacityColumn = new TableColumn<>("Capacidad");
+        capacityColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(
+                p.getValue().capacity== null ? "" : p.getValue().capacity.toString()));
+        tableView.getColumns().add(capacityColumn);
+
         TableColumn<Event, String> dateColumn = new TableColumn<>("Fecha");
         dateColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(
                 p.getValue().date == null ? "" : p.getValue().date.toString()
         ));
-
         tableView.getColumns().add(dateColumn);
 
         tableView.setItems(model.events);

@@ -32,7 +32,7 @@ public class VenueService {
         if(venue.type.trim().isBlank()){
             throw new IllegalArgumentException("Tipo no valida");
         }
-        if (venue.capacity == null || venue.capacity < 0) { // Esto evita guardar valores negativos.
+        if (venue.capacity == null || venue.capacity < 0) { // Esto evita guardar valores negativos. desde aqui puedes excluir el cero con "<="
             throw new IllegalArgumentException("La capacidad debe ser mayor o igual a cero");
         }
         repository.save(venue);

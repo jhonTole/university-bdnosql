@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -44,10 +45,14 @@ public class AttendeeView implements Builder<Region> {
         navigationBarHBox.setSpacing(8);
 
         // VBox organiza su contenido verticalmente
-        return new VBox(
+        VBox layout = new VBox(
                 navigationBarHBox,
                 table
         );
+        // Permitir que la tabla crezca verticalmente
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        return layout;
     }
 
     private Node createAttendeesTable() {
