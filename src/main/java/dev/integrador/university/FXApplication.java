@@ -6,9 +6,11 @@ import com.mongodb.client.MongoDatabase;
 import dev.integrador.university.controller.AttendeeController;
 import dev.integrador.university.controller.EventController;
 import dev.integrador.university.controller.RegistrationController;
+import dev.integrador.university.controller.VenueController;
 import dev.integrador.university.repository.AttendeeRepository;
 import dev.integrador.university.repository.EventRepository;
 import dev.integrador.university.repository.RegistrationRepository;
+import dev.integrador.university.repository.VenueRepository;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -38,21 +40,25 @@ public class FXApplication extends Application {
             AttendeeRepository attendeeRepository = new AttendeeRepository(database);
             AttendeeController attendeeController = new AttendeeController(attendeeRepository);
 
-
             RegistrationRepository registrationRepository = new RegistrationRepository(database);
             RegistrationController registrationController = new RegistrationController(registrationRepository);
+
+            VenueRepository venueRepository = new VenueRepository(database);
+            VenueController venueController = new VenueController(venueRepository);
 
             TabPane tabPane = new TabPane();
 
             Tab eventTab = new Tab("Eventos", eventController.getView());
             Tab attendeeTab = new Tab("Asistentes", attendeeController.getView());
             Tab registrationTab = new Tab("Registros", registrationController.getView());
+            Tab venueTab = new Tab("Espacios", venueController.getView());
 
             eventTab.setClosable(false);
             attendeeTab.setClosable(false);
             registrationTab.setClosable(false);
+            venueTab.setClosable(false);
 
-            tabPane.getTabs().addAll(eventTab, attendeeTab,registrationTab);
+            tabPane.getTabs().addAll(eventTab, attendeeTab, registrationTab, venueTab);
 
             primaryStage.setScene(new Scene(tabPane, 1070, 600));
 

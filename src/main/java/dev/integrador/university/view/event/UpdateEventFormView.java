@@ -44,6 +44,7 @@ public class UpdateEventFormView implements Builder<Region> {
 
         date = convertDateToLocalDate(eventToUpdate.date);
     }
+
     private Node createTextField(StringProperty property) {
         TextField field = new TextField();
         field.textProperty().bindBidirectional(property);
@@ -74,6 +75,7 @@ public class UpdateEventFormView implements Builder<Region> {
         errorMessageLabel.textProperty().bindBidirectional(errorMessage);
         return errorMessageLabel;
     }
+
     @Override
     public Region build() {
         VBox form = new VBox(

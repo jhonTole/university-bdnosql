@@ -40,6 +40,7 @@ public class EventView implements Builder<Region> {
                 updateEventButton,
                 deleteEventButton
         );
+
         navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
 
@@ -133,7 +134,7 @@ public class EventView implements Builder<Region> {
         Stage modal = new Stage();
         // stage = ventana
         modal.initModality(Modality.APPLICATION_MODAL);
-        modal.setTitle("Actualizar evento - Univesidad");
+        modal.setTitle("Actualizar Evento - Univesidad");
 
         UpdateEventFormView updateEventFormView = new UpdateEventFormView(service, eventToUpdate);
 
