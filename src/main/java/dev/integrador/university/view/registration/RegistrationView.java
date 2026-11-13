@@ -1,9 +1,12 @@
 package dev.integrador.university.view.registration;
 
+import dev.integrador.university.entities.Attendee;
 import dev.integrador.university.entities.Registration;
 import dev.integrador.university.model.RegistrationModel;
 import dev.integrador.university.service.RegistrationService;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -18,6 +21,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Builder;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 public class RegistrationView implements Builder<Region> {
     private final RegistrationModel model;
     private final RegistrationService service;
@@ -29,7 +35,8 @@ public class RegistrationView implements Builder<Region> {
 
     @Override
     public Region build() {
-        Node table = createRegistrationTable();
+        FilteredList<Registration> filteredRegistration = new FilteredList<>(model.registrations, event -> true);
+        Node table = createRegistrationTable(filteredRegistration);
         Node newRegistrationButton = createNewRegistrationButton();
         Node deleteRegistrationButton = createDeleteRegistrationButton();
         Node updateRegistrationButton = createUpdateRegistrationButton();
@@ -44,36 +51,52 @@ public class RegistrationView implements Builder<Region> {
         Label title = new Label("Gestión de Inscripciones");
         title.getStyleClass().add("navigation-title");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar inscripcion por fecha o estado...");
+        searchField.setMaxWidth(Double.MAX_VALUE);
+
+        searchField.textProperty().addListener((observable, previous, current) -> {
+            String query = current == null ? "" : current.trim().toLowerCase(Locale.ROOT);
+
+            filteredRegistration.setPredicate(registration -> {
+                if (query.isEmpty()) {return true;}
+
+                String registrationDate = registration.registrationDate == null ? "" : dateFormat.format(registration.registrationDate);
+                String status = registration.status == null ? "" : registration.status.toLowerCase(Locale.ROOT);
+
+                return registrationDate.contains(query) || status.contains(query);
+            });
+        });
+
+        HBox.setHgrow(searchField, Priority.ALWAYS);
 
         HBox navigationBarHBox = new HBox(
                 icon,
                 title,
-                spacer,
+                searchField,
                 newRegistrationButton,
                 updateRegistrationButton,
                 deleteRegistrationButton
         );
+
         navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
 
-        // VBox organiza su contenido verticalmente
         VBox layout = new VBox(
                 navigationBarHBox,
                 table
         );
 
-        // Permitir que la tabla crezca verticalmente
         VBox.setVgrow(table, Priority.ALWAYS);
 
         return layout;
     }
 
-    private Node createRegistrationTable() {
+    private Node createRegistrationTable(ObservableList<Registration> items) {
         TableView<Registration> tableView = new TableView<>();
+        tableView.setPlaceholder(new Label("Inscripcion no encontrada"));
 
-        // sincroniza la fila seleccionada con el modelo
         model.selectedRegistration.bind(tableView.getSelectionModel().selectedItemProperty());
 
         TableColumn<Registration, String> idColumn = new TableColumn<>("ID");
@@ -84,14 +107,15 @@ public class RegistrationView implements Builder<Region> {
         statusColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().status));
         tableView.getColumns().add(statusColumn);
 
-        TableColumn<Registration, String> registrationDateColumn = new TableColumn<>("Fecha");
-        registrationDateColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(
-                p.getValue().registrationDate == null ? "" : p.getValue().registrationDate.toString()
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+        TableColumn<Registration, String> dateColumn = new TableColumn<>("Fecha");
+        dateColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(
+                p.getValue().registrationDate == null ? "" : dateFormat.format(p.getValue().registrationDate)
         ));
+        tableView.getColumns().add(dateColumn);
 
-        tableView.getColumns().add(registrationDateColumn);
-
-        tableView.setItems(model.registrations);
+        tableView.setItems(items);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
     }
@@ -100,7 +124,7 @@ public class RegistrationView implements Builder<Region> {
         Stage model = new Stage();
 
         model.initModality(Modality.APPLICATION_MODAL);
-        model.setTitle("Crear Registro - Universidad");
+        model.setTitle("Llenar Inscripcion - Universidad");
 
         NewRegistrationFormView newRegistrationForm = new NewRegistrationFormView(service);
         Scene scene = new Scene(newRegistrationForm.build());
@@ -112,7 +136,7 @@ public class RegistrationView implements Builder<Region> {
     }
 
     private Node createNewRegistrationButton(){
-        Button button = new Button("+ Crear Registro");
+        Button button = new Button("+ Nueva Incripcion");
         button.getStyleClass().add("btn-create");
         Stage newRegistrationModal = createNewRegistrationModal();
         button.setOnAction(registration -> {
@@ -123,7 +147,7 @@ public class RegistrationView implements Builder<Region> {
     }
 
     private Node createUpdateRegistrationButton(){
-        Button button = new Button("Actualizar Registro");
+        Button button = new Button("Actualizar Inscripcion");
         button.getStyleClass().add("btn-update");
         button.disableProperty().bind(model.selectedRegistration.isNull());
         button.setOnAction(registration -> {
@@ -139,7 +163,7 @@ public class RegistrationView implements Builder<Region> {
         Stage modal = new Stage();
         // stage = ventana
         modal.initModality(Modality.APPLICATION_MODAL);
-        modal.setTitle("Actualizar Registro - Univesidad");
+        modal.setTitle("Actualizar Inscripcion - Univesidad");
 
         UpdateRegistrationFormView updateRegistrationForm = new UpdateRegistrationFormView(service, registrationToUpdate);
         Scene scene = new Scene(updateRegistrationForm.build());
@@ -156,7 +180,7 @@ public class RegistrationView implements Builder<Region> {
         button.disableProperty().bind(model.selectedRegistration.isNull());
 
         button.setOnAction(registration -> {
-            deleteRegistration(model.selectedRegistration.get().eventId);
+            deleteRegistration(model.selectedRegistration.get().registrationId);
             service.findAllRegistrations();
         });
 
@@ -165,7 +189,7 @@ public class RegistrationView implements Builder<Region> {
 
     private void deleteRegistration(String registrationId){
         Registration registration = model.selectedRegistration.get();
-        service.removeRegistrationById(registration.registrationId);
+        service.removeRegistrationById(registrationId);
 
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Registro eliminado");

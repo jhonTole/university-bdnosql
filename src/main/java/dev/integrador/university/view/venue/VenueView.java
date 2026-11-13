@@ -1,10 +1,13 @@
 package dev.integrador.university.view.venue;
 
+import dev.integrador.university.entities.Attendee;
 import dev.integrador.university.entities.Event;
 import dev.integrador.university.entities.Venue;
 import dev.integrador.university.model.VenueModel;
 import dev.integrador.university.service.VenueService;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -19,6 +22,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Builder;
 
+import java.util.Locale;
+
 public class VenueView implements Builder<Region> {
     private final VenueModel model;
     private final VenueService service;
@@ -30,7 +35,8 @@ public class VenueView implements Builder<Region> {
 
     @Override
     public Region build() {
-        Node table = createVenuesTable();
+        FilteredList<Venue> filteredVenues = new FilteredList<>(model.venues, venue -> true);
+        Node table = createVenuesTable(filteredVenues);
         Node newVenueButton = createNewVenueButton();
         Node deleteVenueButton = createDeleteVenueButton();
         Node updateVenueButton = createUpdateVenueButton();
@@ -46,12 +52,29 @@ public class VenueView implements Builder<Region> {
         Label title = new Label("Espacios");
         title.getStyleClass().add("navigation-title");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar espacios por nombre o estado...");
+        searchField.setMaxWidth(Double.MAX_VALUE);
+
+        searchField.textProperty().addListener((observable, previous, current) -> {
+            String query = current == null ? "" : current.trim().toLowerCase(Locale.ROOT);
+
+            filteredVenues.setPredicate(venue -> {
+                if (query.isEmpty()) {return true;}
+
+                String name = venue.name == null ? "" : venue.name.toLowerCase(Locale.ROOT);
+                String type = venue.type == null ? "" : venue.type.toLowerCase(Locale.ROOT);
+
+                return name.contains(query) || type.contains(query);
+            });
+        });
+
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
         HBox navigationBarHBox = new HBox(
                 icon,
                 title,
-                spacer,
+                searchField,
                 newVenueButton,
                 updateVenueButton,
                 deleteVenueButton
@@ -60,22 +83,20 @@ public class VenueView implements Builder<Region> {
         navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
 
-        // VBox organiza su contenido verticalmente
         VBox layout = new VBox(
                 navigationBarHBox,
                 table
         );
 
-        // Permitir que la tabla crezca verticalmente
         VBox.setVgrow(table, Priority.ALWAYS);
 
         return layout;
     }
 
-    private Node createVenuesTable() {
+    private Node createVenuesTable(ObservableList<Venue> items) {
         TableView<Venue> tableView = new TableView<>();
+        tableView.setPlaceholder(new Label("Evento no encontrado"));
 
-        // sincroniza la fila seleccionada con el modelo
         model.selectedVenue.bind(tableView.getSelectionModel().selectedItemProperty());
 
         TableColumn<Venue, String> idColumn = new TableColumn<>("ID");
@@ -95,7 +116,7 @@ public class VenueView implements Builder<Region> {
                 p.getValue().capacity== null ? "" : p.getValue().capacity.toString()));
         tableView.getColumns().add(capacityColumn);
 
-        tableView.setItems(model.venues);
+        tableView.setItems(items);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
     }

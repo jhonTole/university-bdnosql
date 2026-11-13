@@ -67,7 +67,7 @@ public class NewRegistrationFormView implements Builder<Region> {
         VBox form = new VBox(
                 new Label("Estado:"),
                 statusField,
-                new Label("Fecha de Registro"),
+                new Label("Fecha de Inscripcion"),
                 registrationDateField,
                 errorMessageLabel,
                 buttons
@@ -81,7 +81,7 @@ public class NewRegistrationFormView implements Builder<Region> {
     }
 
     private Node createSubmitButton() {
-        Button submitButton = new Button("+ Añadir Registro");
+        Button submitButton = new Button("+ Añadir Inscripcion");
         submitButton.getStyleClass().addAll("btn-create","sub-btn");
 
         submitButton.setOnAction(registration -> {

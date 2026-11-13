@@ -50,7 +50,7 @@ public class FXApplication extends Application {
 
             Tab eventTab = new Tab("Eventos", eventController.getView());
             Tab attendeeTab = new Tab("Asistentes", attendeeController.getView());
-            Tab registrationTab = new Tab("Registros", registrationController.getView());
+            Tab registrationTab = new Tab("Inscripciones", registrationController.getView());
             Tab venueTab = new Tab("Espacios", venueController.getView());
 
             eventTab.setClosable(false);

@@ -1,9 +1,12 @@
 package dev.integrador.university.view.attendee;
 
 import dev.integrador.university.entities.Attendee;
+import dev.integrador.university.entities.Event;
 import dev.integrador.university.model.AttendeeModel;
 import dev.integrador.university.service.AttendeeService;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -18,6 +21,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Builder;
 
+import java.util.Locale;
+
 public class AttendeeView implements Builder<Region> {
     private final AttendeeModel model;
     private final AttendeeService service;
@@ -29,8 +34,8 @@ public class AttendeeView implements Builder<Region> {
 
     @Override
     public Region build() {
-        Node table = createAttendeesTable();
-
+        FilteredList<Attendee> filteredAttendees = new FilteredList<>(model.attendees, event -> true);
+        Node table = createAttendeesTable(filteredAttendees);
         Node newAttendeeButton = createNewAttendeeButton();
         Node deleteAttendeeButton = createDeleteAttendeeButton();
         Node updateAttendeeButton = createUpdateAttendeeButton();
@@ -46,33 +51,50 @@ public class AttendeeView implements Builder<Region> {
         Label title = new Label("Gestión de Registros");
         title.getStyleClass().add("navigation-title");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar asistente por nombre o categoría...");
+        searchField.setMaxWidth(Double.MAX_VALUE);
+
+        searchField.textProperty().addListener((observable, previous, current) -> {
+            String query = current == null ? "" : current.trim().toLowerCase(Locale.ROOT);
+
+            filteredAttendees.setPredicate(attendee -> {
+                if (query.isEmpty()) {return true;}
+
+                String name = attendee.name == null ? "" : attendee.name.toLowerCase(Locale.ROOT);
+                String documentNumber= attendee.documentNumber == null ? "" : attendee.documentNumber.toLowerCase(Locale.ROOT);
+
+                return name.contains(query) || documentNumber.contains(query);
+            });
+        });
+
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
         HBox navigationBarHBox = new HBox(
                 icon,
                 title,
-                spacer,
+                searchField,
                 newAttendeeButton,
                 updateAttendeeButton,
                 deleteAttendeeButton
         );
+
         navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
 
-        // VBox organiza su contenido verticalmente
         VBox layout = new VBox(
                 navigationBarHBox,
                 table
         );
-        // Permitir que la tabla crezca verticalmente
+
         VBox.setVgrow(table, Priority.ALWAYS);
 
         return layout;
     }
 
-    private Node createAttendeesTable() {
+    private Node createAttendeesTable(ObservableList<Attendee> items) {
         TableView<Attendee> tableView = new TableView<>();
-
+        tableView.setPlaceholder(new Label("Asistente no encontrado"));
         // sincroniza la fila seleccionada con el modelo
         model.selectedAttendee.bind(tableView.getSelectionModel().selectedItemProperty());
 
@@ -92,7 +114,7 @@ public class AttendeeView implements Builder<Region> {
         emailColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().email));
         tableView.getColumns().add(emailColumn);
 
-        tableView.setItems(model.attendees);
+        tableView.setItems(items);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
     }
@@ -168,7 +190,7 @@ public class AttendeeView implements Builder<Region> {
 
     private void deleteAttendee(String attendeeId){
         Attendee attendee = model.selectedAttendee.get();
-        service.removeAttendeeById(attendee.attendeeId);
+        service.removeAttendeeById(attendeeId);
 
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Evento eliminado");

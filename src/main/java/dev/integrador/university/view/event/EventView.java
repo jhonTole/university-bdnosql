@@ -4,7 +4,10 @@ import dev.integrador.university.entities.Event;
 import dev.integrador.university.model.EventModel;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,6 +21,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Builder;
 
+import java.util.Locale;
+
 public class EventView implements Builder<Region> {
     private final EventModel model;
     private final EventService service;
@@ -29,10 +34,13 @@ public class EventView implements Builder<Region> {
 
     @Override
     public Region build() {
-        Node table = createEventsTable();
+        //ilteredEvents es una vista de esa lista que muestra únicamente los eventos que cumplen una condición
+        FilteredList<Event> filteredEvents = new FilteredList<>(model.events, event -> true);
+        Node table = createEventsTable(filteredEvents); // Lista filtrada a la tabla
         Node newEventButton = createNewEventButton();
         Node deleteEventButton = createDeleteEventButton();
         Node updateEventButton = createUpdateEventButton();
+
         // imagen del calendario
         ImageView icon = new ImageView(new Image(
                         getClass().getResource("/img/eventsCalendar.png").toExternalForm())
@@ -41,19 +49,34 @@ public class EventView implements Builder<Region> {
         icon.setFitWidth(36);
         icon.setFitHeight(36);
         icon.setPreserveRatio(true);
-
         // Título
         Label title = new Label("Gestión de Eventos");
         title.getStyleClass().add("navigation-title");
+        // Texto dentro de la barra de busqueda
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar evento por nombre o categoría...");
+        searchField.setMaxWidth(Double.MAX_VALUE);
+        // Detecta cada Cambio del texto
+        searchField.textProperty().addListener((observable, previous, current) -> {
+            // prepara la busqueda y convierte el texto a minuscula para mas coincidencias
+            String query = current == null ? "" : current.trim().toLowerCase(Locale.ROOT);
 
-        // Espacio flexible que empuja los botones a la derecha.
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+            filteredEvents.setPredicate(event -> {
+                if (query.isEmpty()) {return true;}
+
+                String name = event.name == null ? "" : event.name.toLowerCase(Locale.ROOT);
+                String category = event.category == null ? "" : event.category.toLowerCase(Locale.ROOT);
+
+                return name.contains(query) || category.contains(query);
+            });
+        });
+        // El campo crece dentro de searchBar.
+        HBox.setHgrow(searchField, Priority.ALWAYS);
 
         HBox navigationBarHBox = new HBox(
                 icon,
                 title,
-                spacer,
+                searchField,
                 newEventButton,
                 updateEventButton,
                 deleteEventButton
@@ -61,6 +84,7 @@ public class EventView implements Builder<Region> {
 
         navigationBarHBox.setPadding(new Insets(10));
         navigationBarHBox.setSpacing(8);
+        navigationBarHBox.setAlignment(Pos.CENTER_LEFT);
 
         // VBox organiza su contenido verticalmente
         VBox layout = new VBox(
@@ -74,9 +98,9 @@ public class EventView implements Builder<Region> {
         return layout;
     }
 
-    private Node createEventsTable() {
+    private Node createEventsTable(ObservableList<Event> items) {
         TableView<Event> tableView = new TableView<>();
-
+        tableView.setPlaceholder(new Label("Evento no encontrado")); // en caso de no encontrar
         // sincroniza la fila seleccionada con el modelo
         model.selectedEvent.bind(tableView.getSelectionModel().selectedItemProperty());
 
@@ -114,8 +138,7 @@ public class EventView implements Builder<Region> {
                 p.getValue().date == null ? "" : p.getValue().date.toString()
         ));
         tableView.getColumns().add(dateColumn);
-
-        tableView.setItems(model.events);
+        tableView.setItems(items);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         return tableView;
     }
@@ -193,7 +216,7 @@ public class EventView implements Builder<Region> {
 
     private void deleteEvent(String eventId){
         Event event = model.selectedEvent.get();
-        service.removeEventById(event.eventId);
+        service.removeEventById(eventId);
 
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Evento eliminado");

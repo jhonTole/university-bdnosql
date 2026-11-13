@@ -65,7 +65,7 @@ public class UpdateRegistrationFormView implements Builder<Region> {
         VBox form = new VBox(
                 new Label("Estado:"),
                 createTextField(status),
-                new Label("Fecha de Registro:"),
+                new Label("Fecha de Inscripcion:"),
                 createRegistrationDateField(),
                 createErrorMessageLabel(),
                 buttons
