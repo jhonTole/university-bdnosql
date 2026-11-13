@@ -93,6 +93,7 @@ public class RegistrationView implements Builder<Region> {
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
         model.setScene(scene);
+        model.setMinWidth(300);
         return model;
     }
 
@@ -131,7 +132,7 @@ public class RegistrationView implements Builder<Region> {
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
         modal.setScene(scene);
-
+        modal.setMinWidth(300);
         return modal;
     }
 

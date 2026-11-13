@@ -86,8 +86,6 @@ public class UpdateVenueFormView implements Builder<Region> {
         form.setSpacing(8);
         form.setPadding(new Insets(30, 25, 25, 30)); // Entrespaciado
         form.setPrefWidth(360);  // Ancho del formulario
-        Region espacio = new Region();
-        espacio.setPrefHeight(20);
 
         return form;
     }

@@ -67,8 +67,6 @@ public class UpdateAttendeeFormView implements Builder<Region> {
         form.setPadding(new Insets(30, 25, 25, 30));
 
         form.setPrefWidth(360);  // Ancho del formulario
-        Region espacio = new Region();
-        espacio.setPrefHeight(20);
 
         return form;
     }

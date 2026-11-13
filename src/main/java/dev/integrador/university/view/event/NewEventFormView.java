@@ -10,10 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.util.Builder;
 
 import java.time.LocalDate;
@@ -123,7 +120,7 @@ public class NewEventFormView implements Builder<Region> {
         endGroup.setMaxWidth(Double.MAX_VALUE);
 
         // Agrupa horizontalmente de Izquierda a Derecha
-        HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
+        HBox buttons = new HBox(16,createSubmitButton(),createCancelButton());
         HBox times = new HBox(16, startGroup,endGroup);
 
         // Ambos grupos aprovechan el espacio horizontal.
@@ -149,10 +146,7 @@ public class NewEventFormView implements Builder<Region> {
 
         form.setSpacing(8); // Entrespaciado
         form.setPadding(new Insets(30, 25, 25, 30));// Entrespaciado
-
         form.setPrefWidth(400);  // Ancho del formulario
-        Region espacio = new Region();
-        espacio.setPrefHeight(20); // Alto del formulario
 
         return form;
     }

@@ -116,6 +116,7 @@ public class EventView implements Builder<Region> {
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         // Asigna la escena configurada a la ventana
         model.setScene(scene);
+        model.setMinWidth(300);
         return model;
     }
 
@@ -155,6 +156,8 @@ public class EventView implements Builder<Region> {
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         // Asigna la escena configurada a la ventana
         modal.setScene(scene);
+        modal.setMinWidth(300);
+
         return modal;
     }
 

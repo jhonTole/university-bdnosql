@@ -61,3 +61,25 @@
 .button:disabled {
     -fx-opacity: 0.5;
 }
+
+/*     Ajustes de Tabla    */
+
+/* Fondo de la barra de encabezados */
+.table-view .column-header-background,
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: #007BFF;
+}
+
+/* Texto de los encabezados */
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8;
+}
+
+/* Separación entre columnas */
+.table-view .column-header {
+    -fx-border-color: transparent #2482EA transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
