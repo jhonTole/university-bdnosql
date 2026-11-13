@@ -11,6 +11,7 @@ import java.util.List;
 public class EventRepository {
     private final String COLLECTION_NAME = "events";
     private final JacksonMongoCollection<Event> collection;
+
     public EventRepository(MongoDatabase database){
         this.collection = JacksonMongoCollection
                 .builder()
@@ -21,6 +22,7 @@ public class EventRepository {
                         UuidRepresentation.STANDARD
                 );
     }
+
     public List<Event> findAll(){return collection.find().into(new ArrayList<>());}
     public void save(Event event){collection.insert(event);}
     public Event findById(String id){return collection.findOneById(id);}

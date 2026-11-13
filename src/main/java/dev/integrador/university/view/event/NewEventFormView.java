@@ -106,8 +106,12 @@ public class NewEventFormView implements Builder<Region> {
                 submitButton
         );
 
-        form.setSpacing(10);
-        form.setPadding(new Insets(30)); // tamaño de la pestaña emergente
+        form.setSpacing(8); // Entrespaciado
+        form.setPadding(new Insets(30, 25, 25, 30)); // Entrespaciado
+
+        form.setPrefWidth(400);  // Ancho del formulario
+        Region espacio = new Region();
+        espacio.setPrefHeight(20); // Alto del formulario
 
         return form;
     }

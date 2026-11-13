@@ -11,6 +11,7 @@ import java.util.List;
 public class AttendeeRepository {
     private final String COLLECTION_NAME = "attendees";
     private final JacksonMongoCollection<Attendee> collection;
+
     public AttendeeRepository(MongoDatabase database){
         this.collection = JacksonMongoCollection
                 .builder()
@@ -21,6 +22,7 @@ public class AttendeeRepository {
                         UuidRepresentation.STANDARD
                 );
     }
+
     public List<Attendee> findAll(){return collection.find().into(new ArrayList<>());}
     public void save(Attendee attendee){collection.insert(attendee);}
     public Attendee findById(String id){return collection.findOneById(id);}

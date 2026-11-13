@@ -116,7 +116,7 @@ public class EventView implements Builder<Region> {
     }
 
     private Node createUpdateEventButton(){
-        Button button = new Button("Actualizar evento");
+        Button button = new Button("Actualizar Evento");
 
         button.disableProperty().bind(model.selectedEvent.isNull());
 
@@ -162,7 +162,7 @@ public class EventView implements Builder<Region> {
 
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Evento eliminado");
-        successAlert.setHeaderText("Evento " + event.name + " Eliminado exitosamente");
+        successAlert.setHeaderText("Evento " + event.name + " eliminado exitosamente");
         successAlert.showAndWait();
     }
 }
