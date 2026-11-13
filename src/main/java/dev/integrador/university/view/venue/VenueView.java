@@ -95,7 +95,7 @@ public class VenueView implements Builder<Region> {
 
     private Node createVenuesTable(ObservableList<Venue> items) {
         TableView<Venue> tableView = new TableView<>();
-        tableView.setPlaceholder(new Label("Evento no encontrado"));
+        tableView.setPlaceholder(new Label("Espacio no encontrado"));
 
         model.selectedVenue.bind(tableView.getSelectionModel().selectedItemProperty());
 
