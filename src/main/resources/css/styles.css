@@ -1,3 +1,8 @@
+.navigation-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #17365D;
+}
 
 .btn-create {
     -fx-background-color: #007BFF;

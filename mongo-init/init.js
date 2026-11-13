@@ -1,5 +1,6 @@
-// mongo-init/init.js
 db = db.getSiblingDB('universitydb');
+
+// AL ser un proyecto en conjunto colocamos datos de referencia de cada tabla para coincidir al ejecutar el proyecto
 
 // IDs de referencia
 const venueId = new ObjectId('6af3523813485c6bcc18ce89');
@@ -69,4 +70,3 @@ db.registrations.updateOne(
     { upsert: true }
 );
 
-print("Script de inicialización completado de forma idempotente en universitydb.");
