@@ -1,0 +1,29 @@
+
+.btn-create {
+    -fx-background-color: #007BFF;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.btn-update {
+    -fx-background-color: #F0AD4E;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.btn-delete {
+    -fx-background-color: #DC3545;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+/* Estilo de botones deshabilitados */
+.button:disabled {
+    -fx-opacity: 0.5;
+}

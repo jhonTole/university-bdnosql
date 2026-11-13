@@ -59,13 +59,19 @@ public class FXApplication extends Application {
             venueTab.setClosable(false);
 
             tabPane.getTabs().addAll(eventTab, attendeeTab, registrationTab, venueTab);
+            // crea una instancia de scene para configurar CSS
+            Scene scene = new Scene(tabPane, 1070, 600);
 
-            primaryStage.setScene(new Scene(tabPane, 1070, 600));
+            // Cargar los estilos CSS
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
-            primaryStage.setTitle("Universidad Santo Tomas"); // titulo de la pestaña
-            primaryStage.setMinWidth(800);   // opcional: tamaño mínimo al redimensionar
+            // Configurar la ventana
+            primaryStage.setTitle("Universidad Santo Tomas");
+            primaryStage.setMinWidth(800);
             primaryStage.setMinHeight(450);
 
+            // ASIGNAR LA ESCENA A LA VENTANA
+            primaryStage.setScene(scene);
             primaryStage.show();
 
         } catch (Exception e){

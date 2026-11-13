@@ -60,9 +60,7 @@ public class RegistrationView implements Builder<Region> {
         TableView<Registration> tableView = new TableView<>();
 
         // sincroniza la fila seleccionada con el modelo
-        model.selectedRegistration.bind(
-                tableView.getSelectionModel().selectedItemProperty()
-        );
+        model.selectedRegistration.bind(tableView.getSelectionModel().selectedItemProperty());
 
         TableColumn<Registration, String> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().registrationId));
@@ -91,41 +89,33 @@ public class RegistrationView implements Builder<Region> {
         model.setTitle("Crear Registro - Universidad");
 
         NewRegistrationFormView newRegistrationForm = new NewRegistrationFormView(service);
-        model.setScene(new Scene(newRegistrationForm.build()));
+        Scene scene = new Scene(newRegistrationForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
+        model.setScene(scene);
         return model;
     }
 
     private Node createNewRegistrationButton(){
         Button button = new Button("+ Crear Registro");
+        button.getStyleClass().add("btn-create");
         Stage newRegistrationModal = createNewRegistrationModal();
         button.setOnAction(registration -> {
             newRegistrationModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #007BFF;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
+
         return button;
     }
 
     private Node createUpdateRegistrationButton(){
         Button button = new Button("Actualizar Registro");
-
+        button.getStyleClass().add("btn-update");
         button.disableProperty().bind(model.selectedRegistration.isNull());
         button.setOnAction(registration -> {
             Registration selectedRegistration = model.selectedRegistration.get();
             Stage updateRegistrationModal = createUpdateRegistrationModal(selectedRegistration);
             updateRegistrationModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #F0AD4E;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
 
         return button;
     }
@@ -136,24 +126,20 @@ public class RegistrationView implements Builder<Region> {
         modal.initModality(Modality.APPLICATION_MODAL);
         modal.setTitle("Actualizar Registro - Univesidad");
 
-        UpdateRegistrationFormView updateRegistrationFormView = new UpdateRegistrationFormView(service, registrationToUpdate);
+        UpdateRegistrationFormView updateRegistrationForm = new UpdateRegistrationFormView(service, registrationToUpdate);
+        Scene scene = new Scene(updateRegistrationForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
-        modal.setScene(new Scene(updateRegistrationFormView.build()));
+        modal.setScene(scene);
 
         return modal;
     }
 
     private Node createDeleteRegistrationButton(){
-        Button button = new Button("borrar");
-        button.disableProperty().bind(
-                model.selectedRegistration.isNull()
-        );
-        button.setStyle(
-                "-fx-background-color: #DC3545;" +
-                        "-fx-text-fill: white;" + // texto
-                        "-fx-font-weight: bold;" + // fondo
-                        "-fx-background-radius: 5;"
-        );
+        Button button = new Button("Borrar");
+        button.getStyleClass().add("btn-delete");
+        button.disableProperty().bind(model.selectedRegistration.isNull());
+
         button.setOnAction(registration -> {
             deleteRegistration(model.selectedRegistration.get().eventId);
             service.findAllRegistrations();

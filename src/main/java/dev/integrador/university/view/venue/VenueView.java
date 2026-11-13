@@ -93,41 +93,34 @@ public class VenueView implements Builder<Region> {
         model.setTitle("Crear Espacio - Universidad");
 
         NewVenueFormView newVenueForm = new NewVenueFormView(service);
-        model.setScene(new Scene(newVenueForm.build()));
+        Scene scene = new Scene(newVenueForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+
+        model.setScene(scene);
 
         return model;
     }
 
     private Node createNewVenueButton(){
         Button button = new Button("+ Crear Espacio");
+        button.getStyleClass().add("btn-create");
         Stage newVenueModal = createNewVenueModal();
         button.setOnAction(venue -> {
             newVenueModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #007BFF;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
+
         return button;
     }
 
     private Node createUpdateVenueButton(){
         Button button = new Button("Actualizar Espacio");
-
+        button.getStyleClass().add("btn-update");
         button.disableProperty().bind(model.selectedVenue.isNull());
         button.setOnAction(venue -> {
             Venue selectedVenue = model.selectedVenue.get();
             Stage updateVenueModal = createUpdateVenueModal(selectedVenue);
             updateVenueModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #F0AD4E;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
 
         return button;
     }
@@ -139,23 +132,18 @@ public class VenueView implements Builder<Region> {
         modal.setTitle("Actualizar Espacio - Univesidad");
 
         UpdateVenueFormView updateVenueFormView = new UpdateVenueFormView(service, venueToUpdate);
+        Scene scene = new Scene(updateVenueFormView.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
-        modal.setScene(new Scene(updateVenueFormView.build()));
+        modal.setScene(scene);
 
         return modal;
     }
 
     private Node createDeleteVenueButton(){
-        Button button = new Button("borrar");
-        button.disableProperty().bind(
-                model.selectedVenue.isNull()
-        );
-        button.setStyle(
-                "-fx-background-color: #DC3545;" +
-                        "-fx-text-fill: white;" + // texto
-                        "-fx-font-weight: bold;" + // fondo
-                        "-fx-background-radius: 5;"
-        );
+        Button button = new Button("Borrar");
+        button.getStyleClass().add("btn-delete");
+        button.disableProperty().bind(model.selectedVenue.isNull());
 
         button.setOnAction(venue -> {
             deleteVenue(model.selectedVenue.get().venueId);

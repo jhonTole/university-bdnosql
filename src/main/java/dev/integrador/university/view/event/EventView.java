@@ -111,41 +111,34 @@ public class EventView implements Builder<Region> {
         model.setTitle("Crear Evento - Universidad");
 
         NewEventFormView newEventForm = new NewEventFormView(service);
-        model.setScene(new Scene(newEventForm.build()));
-
+        //Crea una instancia de scene para configurar el Style
+        Scene scene = new Scene(newEventForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        // Asigna la escena configurada a la ventana
+        model.setScene(scene);
         return model;
     }
 
     private Node createNewEventButton(){
         Button button = new Button("+ Crear Evento");
+        button.getStyleClass().add("btn-create");
         Stage newEventModal = createNewEventModal();
         button.setOnAction(event -> {
             newEventModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #007BFF;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
+
         return button;
     }
 
     private Node createUpdateEventButton(){
         Button button = new Button("Actualizar Evento");
-
+        button.getStyleClass().add("btn-update"); // asigna la clase btn-delete como en html "class=btn-update"
         button.disableProperty().bind(model.selectedEvent.isNull());
         button.setOnAction(event -> {
             Event selectedEvent = model.selectedEvent.get();
             Stage updateEventModal = createUpdateEventModal(selectedEvent);
             updateEventModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #F0AD4E;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
 
         return button;
     }
@@ -156,22 +149,20 @@ public class EventView implements Builder<Region> {
         modal.initModality(Modality.APPLICATION_MODAL);
         modal.setTitle("Actualizar Evento - Univesidad");
 
-        UpdateEventFormView updateEventFormView = new UpdateEventFormView(service, eventToUpdate);
-
-        modal.setScene(new Scene(updateEventFormView.build()));
-
+        UpdateEventFormView updateEventForm = new UpdateEventFormView(service, eventToUpdate);
+        //Crea una instancia de scene para configurar el Style
+        Scene scene = new Scene(updateEventForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        // Asigna la escena configurada a la ventana
+        modal.setScene(scene);
         return modal;
     }
 
     private Node createDeleteEventButton(){
-        Button button = new Button("borrar");
+        Button button = new Button("Borrar");
+        button.getStyleClass().add("btn-delete"); // asigna la clase btn-delete como en html "class=btn-delete"
         button.disableProperty().bind(model.selectedEvent.isNull());
-        button.setStyle(
-                "-fx-background-color: #DC3545;" +
-                        "-fx-text-fill: white;" + // texto
-                        "-fx-font-weight: bold;" + // fondo
-                        "-fx-background-radius: 5;"
-        );
+
 
         button.setOnAction(event -> {
             deleteEvent(model.selectedEvent.get().eventId);

@@ -59,9 +59,7 @@ public class AttendeeView implements Builder<Region> {
         TableView<Attendee> tableView = new TableView<>();
 
         // sincroniza la fila seleccionada con el modelo
-        model.selectedAttendee.bind(
-                tableView.getSelectionModel().selectedItemProperty()
-        );
+        model.selectedAttendee.bind(tableView.getSelectionModel().selectedItemProperty());
 
         TableColumn<Attendee, String> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().attendeeId));
@@ -91,41 +89,35 @@ public class AttendeeView implements Builder<Region> {
         model.setTitle("Crear Asistente - Universidad");
 
         NewAttendeeFormView newAttendeeForm = new NewAttendeeFormView(service);
-        model.setScene(new Scene(newAttendeeForm.build()));
+        Scene scene = new Scene(newAttendeeForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+
+        model.setScene(scene);
 
         return model;
     }
 
     private Node createNewAttendeeButton(){
         Button button = new Button("+ Crear Asistente");
+        button.getStyleClass().add("btn-create");
         Stage newAttendeeButton = createNewAttendeeModal();
         button.setOnAction(event -> {
             newAttendeeButton.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #007BFF;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
+
         return button;
     }
 
     private Node createUpdateAttendeeButton(){
         Button button = new Button("Actualizar asistente");
-
+        button.getStyleClass().add("btn-update");
         button.disableProperty().bind(model.selectedAttendee.isNull());
         button.setOnAction(event -> {
             Attendee selectedAttendee = model.selectedAttendee.get();
             Stage updateAttendeeModal = createUpdateAttendeeModal(selectedAttendee);
             updateAttendeeModal.showAndWait();
         });
-        button.setStyle(
-                "-fx-background-color: #F0AD4E;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;"
-        );
+
         return button;
     }
 
@@ -135,24 +127,19 @@ public class AttendeeView implements Builder<Region> {
         modal.initModality(Modality.APPLICATION_MODAL);
         modal.setTitle("Actualizar asistente - Univesidad");
 
-        UpdateAttendeeFormView updateAttendeeFormView = new UpdateAttendeeFormView(service, attendeeToUpdate);
+        UpdateAttendeeFormView updateAttendeeForm = new UpdateAttendeeFormView(service, attendeeToUpdate);
+        Scene scene = new Scene(updateAttendeeForm.build());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
 
-        modal.setScene(new Scene(updateAttendeeFormView.build()));
-
+        modal.setScene(scene);
         return modal;
     }
 
     private Node createDeleteAttendeeButton(){
-        Button button = new Button("borrar");
-        button.disableProperty().bind(
-                model.selectedAttendee.isNull()
-        );
-        button.setStyle(
-                "-fx-background-color: #DC3545;" +
-                        "-fx-text-fill: white;" + // texto
-                        "-fx-font-weight: bold;" + // fondo
-                        "-fx-background-radius: 5;"
-        );
+        Button button = new Button("Borrar");
+        button.getStyleClass().add("btn-delete");
+        button.disableProperty().bind(model.selectedAttendee.isNull());
+
         button.setOnAction(attendee -> {
             deleteAttendee(model.selectedAttendee.get().attendeeId);
             service.findAllAttendees();
