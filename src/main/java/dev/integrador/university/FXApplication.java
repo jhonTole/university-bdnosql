@@ -11,12 +11,19 @@ import dev.integrador.university.repository.AttendeeRepository;
 import dev.integrador.university.repository.EventRepository;
 import dev.integrador.university.repository.RegistrationRepository;
 import dev.integrador.university.repository.VenueRepository;
+import dev.integrador.university.view.DashboardView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import java.util.function.Supplier;
 
 public class FXApplication extends Application {
     public static final String MONGODB_URI = System.getenv().getOrDefault(
@@ -46,21 +53,38 @@ public class FXApplication extends Application {
             VenueRepository venueRepository = new VenueRepository(database);
             VenueController venueController = new VenueController(venueRepository);
 
-            TabPane tabPane = new TabPane();
+            // Menú lateral + zona central (diseño del mockup del profe)
+            BorderPane root = new BorderPane();
+            VBox sidebar = new VBox(4);
+            sidebar.getStyleClass().add("sidebar");
+            sidebar.setPrefWidth(190);
+            sidebar.setMinWidth(190);
 
-            Tab eventTab = new Tab("Eventos", eventController.getView());
-            Tab attendeeTab = new Tab("Asistentes", attendeeController.getView());
-            Tab registrationTab = new Tab("Inscripciones", registrationController.getView());
-            Tab venueTab = new Tab("Espacios", venueController.getView());
+            Button homeButton = createNavButton("Inicio", null, root, sidebar, () ->
+                    new DashboardView(
+                            eventRepository.findAll(),
+                            venueRepository.findAll(),
+                            attendeeRepository.getCount(),
+                            registrationRepository.getCount()
+                    ).build());
+            Button eventButton = createNavButton("Eventos", "/img/eventsCalendar.png",
+                    root, sidebar, eventController::getView);
+            Button attendeeButton = createNavButton("Asistentes", "/img/attendeesGroup.png",
+                    root, sidebar, attendeeController::getView);
+            Button registrationButton = createNavButton("Inscripciones", "/img/registrationsList.png",
+                    root, sidebar, registrationController::getView);
+            Button venueButton = createNavButton("Espacios", "/img/venueSpace.png",
+                    root, sidebar, venueController::getView);
 
-            eventTab.setClosable(false);
-            attendeeTab.setClosable(false);
-            registrationTab.setClosable(false);
-            venueTab.setClosable(false);
+            sidebar.getChildren().addAll(homeButton, eventButton, attendeeButton,
+                    registrationButton, venueButton);
+            root.setLeft(sidebar);
 
-            tabPane.getTabs().addAll(eventTab, attendeeTab, registrationTab, venueTab);
+            // Pantalla inicial: Inicio (Dashboard)
+            homeButton.fire();
+
             // crea una instancia de scene para configurar CSS
-            Scene scene = new Scene(tabPane, 1070, 600);
+            Scene scene = new Scene(root, 1070, 600);
 
             // Cargar los estilos CSS
             scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
@@ -84,6 +108,34 @@ public class FXApplication extends Application {
 
             throw e;
         }
+    }
+
+    // Crea un botón del menú lateral. Al hacer clic cambia la zona central
+    // y marca el botón como activo (clase CSS "nav-button-active").
+    private Button createNavButton(String text, String iconPath, BorderPane root,
+                                   VBox sidebar, Supplier<Region> viewSupplier) {
+        Button button = new Button(text);
+        button.getStyleClass().add("nav-button");
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setGraphicTextGap(10);
+
+        if (iconPath != null) {
+            ImageView icon = new ImageView(new Image(
+                    getClass().getResource(iconPath).toExternalForm()));
+            icon.setFitWidth(22);
+            icon.setFitHeight(22);
+            icon.setPreserveRatio(true);
+            button.setGraphic(icon);
+        } else {
+            button.setText("\u2302  " + text); // icono de casa para Inicio
+        }
+
+        button.setOnAction(e -> {
+            sidebar.getChildren().forEach(node -> node.getStyleClass().remove("nav-button-active"));
+            button.getStyleClass().add("nav-button-active");
+            root.setCenter(viewSupplier.get());
+        });
+        return button;
     }
 
     @Override

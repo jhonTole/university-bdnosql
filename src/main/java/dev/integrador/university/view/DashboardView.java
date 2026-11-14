@@ -1,7 +1,7 @@
 package dev.integrador.university.view;
 
-import dev.integrador.university.model.EventModel;
-import dev.integrador.university.service.EventService;
+import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -9,21 +9,35 @@ import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.chart.PieChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.util.Builder;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Pantalla de inicio (Dashboard) según el mockup del profe.
+ * El menú lateral ya NO vive aquí: ahora está en FXApplication.
+ * Los números y las listas salen de la base de datos (antes eran datos de prueba).
+ */
 public class DashboardView implements Builder<Region> {
-    // Paleta y estilos reutilizables (baja fidelidad, sin hoja CSS externa)
+    // Paleta y estilos reutilizables
     private static final String PRIMARY = "#1F4E8C";
     private static final String BACKGROUND = "#F4F6FA";
     private static final String BORDER = "#D9DEE7";
@@ -36,72 +50,21 @@ public class DashboardView implements Builder<Region> {
                     + "-fx-border-radius: 8;"
                     + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);";
 
-    private final EventModel model;
-    private final EventService service;
+    private final List<Event> events;
+    private final List<Venue> venues;
+    private final long attendeesCount;
+    private final long registrationsCount;
 
-    public DashboardView(EventModel model, EventService service) {
-        this.model = model;
-        this.service = service;
+    public DashboardView(List<Event> events, List<Venue> venues,
+                         long attendeesCount, long registrationsCount) {
+        this.events = events;
+        this.venues = venues;
+        this.attendeesCount = attendeesCount;
+        this.registrationsCount = registrationsCount;
     }
 
     @Override
     public Region build() {
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + BACKGROUND + ";");
-        root.setLeft(createSidebar());
-        root.setCenter(createMainContent());
-        return root;
-    }
-
-    // ---------------------------------------------------------------
-    // Sidebar
-    // ---------------------------------------------------------------
-    private Node createSidebar() {
-        VBox sidebar = new VBox(
-                createNavButton("\uD83C\uDFE0", "Inicio", true),
-                createNavButton("\uD83D\uDCC5", "Eventos", false),
-                createNavButton("\uD83D\uDC65", "Asistentes", false),
-                createNavButton("\u2611", "Inscripciones", false),
-                createNavButton("\uD83C\uDFDB", "Espacios", false)
-        );
-        sidebar.setSpacing(4);
-        sidebar.setPadding(new Insets(16, 8, 16, 8));
-        sidebar.setPrefWidth(190);
-        sidebar.setMinWidth(190);
-        sidebar.setStyle(
-                "-fx-background-color: white;"
-                        + "-fx-border-color: " + BORDER + ";"
-                        + "-fx-border-width: 0 1 0 0;"
-        );
-        return sidebar;
-    }
-
-    private Button createNavButton(String icon, String text, boolean active) {
-        Button button = new Button(icon + "   " + text);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setPadding(new Insets(10, 12, 10, 12));
-        if (active) {
-            button.setStyle(
-                    "-fx-background-color: #DCE8F7;"
-                            + "-fx-text-fill: " + PRIMARY + ";"
-                            + "-fx-font-weight: bold;"
-                            + "-fx-background-radius: 6;"
-            );
-        } else {
-            button.setStyle(
-                    "-fx-background-color: transparent;"
-                            + "-fx-text-fill: #374151;"
-                            + "-fx-background-radius: 6;"
-            );
-        }
-        return button;
-    }
-
-    // ---------------------------------------------------------------
-    // Contenido principal
-    // ---------------------------------------------------------------
-    private Node createMainContent() {
         Node header = createHeader();
         Node kpis = createKpiRow();
         Node bottom = createBottomSection();
@@ -110,9 +73,13 @@ public class DashboardView implements Builder<Region> {
         VBox content = new VBox(header, kpis, bottom);
         content.setSpacing(20);
         content.setPadding(new Insets(20));
+        content.setStyle("-fx-background-color: " + BACKGROUND + ";");
         return content;
     }
 
+    // ---------------------------------------------------------------
+    // Encabezado
+    // ---------------------------------------------------------------
     private Node createHeader() {
         Circle circle = new Circle(28, Color.web("#F2B705"));
         circle.setStroke(Color.web(PRIMARY));
@@ -135,28 +102,32 @@ public class DashboardView implements Builder<Region> {
     }
 
     // ---------------------------------------------------------------
-    // KPIs
+    // KPIs (números reales)
     // ---------------------------------------------------------------
     private Node createKpiRow() {
         HBox row = new HBox(
-                createKpiCard("\uD83D\uDCC5", "12", "Eventos"),
-                createKpiCard("\uD83D\uDC65", "248", "Asistentes"),
-                createKpiCard("\u2705", "176", "Inscripciones"),
-                createKpiCard("\uD83C\uDFDB", "8", "Espacios")
+                createKpiCard("/img/eventsCalendar.png", String.valueOf(events.size()), "Eventos"),
+                createKpiCard("/img/attendeesGroup.png", String.valueOf(attendeesCount), "Asistentes"),
+                createKpiCard("/img/registrationsList.png", String.valueOf(registrationsCount), "Inscripciones"),
+                createKpiCard("/img/venueSpace.png", String.valueOf(venues.size()), "Espacios")
         );
         row.setSpacing(16);
         return row;
     }
 
-    private Node createKpiCard(String icon, String value, String caption) {
-        Label iconLabel = new Label(icon);
-        iconLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: " + PRIMARY + ";");
+    private Node createKpiCard(String iconPath, String value, String caption) {
+        ImageView icon = new ImageView(new Image(
+                getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitWidth(32);
+        icon.setFitHeight(32);
+        icon.setPreserveRatio(true);
+
         Label valueLabel = new Label(value);
         valueLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #111827;");
         Label captionLabel = new Label(caption);
         captionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + MUTED + ";");
 
-        VBox card = new VBox(4, iconLabel, valueLabel, captionLabel);
+        VBox card = new VBox(4, icon, valueLabel, captionLabel);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(16));
         card.setMinHeight(110);
@@ -185,32 +156,50 @@ public class DashboardView implements Builder<Region> {
     private Node createUpcomingEventsCard() {
         Label title = new Label("Próximos Eventos");
         title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Hyperlink seeAll = new Hyperlink("Ver todos \u2192");
-        seeAll.setStyle("-fx-text-fill: " + PRIMARY + "; -fx-font-size: 12px;");
 
-        HBox header = new HBox(title, spacer, seeAll);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        // Datos estáticos de prueba
-        VBox card = new VBox(
-                header,
-                createEventRow("Cumbre 5.0", "Auditorio Mayor", "Nov. 20", "08:00"),
-                createEventRow("Feria Cultural", "Plaza USTA", "Nov. 25", "14:00"),
-                createEventRow("Torneo Deportivo", "Coliseo", "Nov. 28", "10:00")
-        );
+        VBox card = new VBox(title);
         card.setSpacing(8);
         card.setPadding(new Insets(16));
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPrefWidth(1);
         card.setStyle(CARD_STYLE);
+
+        // Eventos desde hoy en adelante, los 3 más cercanos
+        Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        List<Event> upcoming = events.stream()
+                .filter(e -> e.date != null && !e.date.before(today))
+                .sorted(Comparator.comparing((Event e) -> e.date))
+                .limit(3)
+                .toList();
+
+        if (upcoming.isEmpty()) {
+            Label empty = new Label("No hay eventos próximos");
+            empty.setStyle("-fx-text-fill: " + MUTED + ";");
+            card.getChildren().add(empty);
+            return card;
+        }
+
+        // id del espacio -> nombre del espacio
+        Map<String, String> venueNames = new HashMap<>();
+        for (Venue venue : venues) {
+            venueNames.put(venue.venueId, venue.name);
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (Event e : upcoming) {
+            String place = venueNames.getOrDefault(e.venueId, "Sin espacio");
+            String time = e.startTime == null ? "" : e.startTime;
+            card.getChildren().add(createEventRow(e.name, place, dateFormat.format(e.date), time));
+        }
         return card;
     }
 
     private Node createEventRow(String name, String place, String date, String time) {
-        Label icon = new Label("\uD83D\uDCC5");
-        icon.setStyle("-fx-font-size: 18px; -fx-text-fill: " + PRIMARY + ";");
+        ImageView icon = new ImageView(new Image(
+                getClass().getResource("/img/eventsCalendar.png").toExternalForm()));
+        icon.setFitWidth(26);
+        icon.setFitHeight(26);
+        icon.setPreserveRatio(true);
 
         Label nameLabel = new Label(name);
         nameLabel.setStyle("-fx-font-weight: bold;");
@@ -239,12 +228,15 @@ public class DashboardView implements Builder<Region> {
         Label title = new Label("Categorías");
         title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
 
-        ObservableList<PieChart.Data> data = FXCollections.observableArrayList(
-                new PieChart.Data("Académico", 40),
-                new PieChart.Data("Cultural", 25),
-                new PieChart.Data("Deportivo", 20),
-                new PieChart.Data("Investigación", 15)
-        );
+        // Cuenta cuántos eventos hay por categoría
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (Event e : events) {
+            String category = (e.category == null || e.category.isBlank()) ? "Sin categoría" : e.category;
+            counts.merge(category, 1, Integer::sum);
+        }
+        ObservableList<PieChart.Data> data = FXCollections.observableArrayList();
+        counts.forEach((category, total) -> data.add(new PieChart.Data(category, total)));
+
         PieChart chart = new PieChart(data);
         chart.setLegendSide(Side.RIGHT);
         chart.setLabelsVisible(false);
