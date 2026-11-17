@@ -2,13 +2,16 @@ package dev.integrador.university.view;
 
 import dev.integrador.university.entities.Event;
 import dev.integrador.university.entities.Venue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
+
 import javafx.scene.Node;
-import javafx.scene.chart.PieChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,7 +30,7 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -116,11 +119,7 @@ public class DashboardView implements Builder<Region> {
     }
 
     private Node createKpiCard(String iconPath, String value, String caption) {
-        ImageView icon = new ImageView(new Image(
-                getClass().getResource(iconPath).toExternalForm()));
-        icon.setFitWidth(32);
-        icon.setFitHeight(32);
-        icon.setPreserveRatio(true);
+        Node icon = safeIcon(iconPath, caption.substring(0, 1), 32);
 
         Label valueLabel = new Label(value);
         valueLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #111827;");
@@ -195,11 +194,7 @@ public class DashboardView implements Builder<Region> {
     }
 
     private Node createEventRow(String name, String place, String date, String time) {
-        ImageView icon = new ImageView(new Image(
-                getClass().getResource("/img/eventsCalendar.png").toExternalForm()));
-        icon.setFitWidth(26);
-        icon.setFitHeight(26);
-        icon.setPreserveRatio(true);
+        Node icon = safeIcon("/img/eventsCalendar.png", "E", 26);
 
         Label nameLabel = new Label(name);
         nameLabel.setStyle("-fx-font-weight: bold;");
@@ -224,32 +219,67 @@ public class DashboardView implements Builder<Region> {
         return row;
     }
 
-    private Node createCategoriesCard() {
-        Label title = new Label("Categorías");
-        title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
-
-        // Cuenta cuántos eventos hay por categoría
-        Map<String, Integer> counts = new LinkedHashMap<>();
-        for (Event e : events) {
-            String category = (e.category == null || e.category.isBlank()) ? "Sin categoría" : e.category;
-            counts.merge(category, 1, Integer::sum);
+    // Usa una letra de respaldo si la imagen no está en resources/img.
+    private Node safeIcon(String path, String fallback, double size) {
+        java.net.URL resource = getClass().getResource(path);
+        if (resource != null) {
+            ImageView image = new ImageView(new Image(resource.toExternalForm(), false));
+            image.setFitWidth(size);
+            image.setFitHeight(size);
+            image.setPreserveRatio(true);
+            return image;
         }
-        ObservableList<PieChart.Data> data = FXCollections.observableArrayList();
-        counts.forEach((category, total) -> data.add(new PieChart.Data(category, total)));
+        Label label = new Label(fallback);
+        label.setAlignment(Pos.CENTER);
+        label.setMinSize(size, size);
+        label.setStyle("-fx-background-color: #E8EFF9; -fx-background-radius: 8; "
+                + "-fx-text-fill: " + PRIMARY + "; -fx-font-weight: bold; -fx-font-size: 17px;");
+        return label;
+    }
 
-        PieChart chart = new PieChart(data);
-        chart.setLegendSide(Side.BOTTOM);   // leyenda abajo: ya no le quita ancho al círculo
-        chart.setLabelsVisible(false);
-        chart.setMinSize(0, 0);             // deja que el gráfico se encoja dentro del cuadro
-        chart.setPrefSize(300, 220);
-        chart.setMaxHeight(240);            // tope para que no se desborde
-        VBox.setVgrow(chart, Priority.ALWAYS);
+    private Node createCategoriesCard() {
+        Label title = new Label("Dispersión de eventos");
+        title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        Label description = new Label("Cada punto es un evento: fecha y capacidad.");
+        description.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
+        description.setWrapText(true);
 
-        VBox card = new VBox(8, title, chart);
+        // X: días a partir de hoy. Y: capacidad registrada del evento.
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Días desde hoy");
+        xAxis.setForceZeroInRange(false);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Capacidad (personas)");
+        yAxis.setForceZeroInRange(true);
+        ScatterChart<Number, Number> chart = new ScatterChart<>(xAxis, yAxis);
+        chart.setLegendVisible(false);
+        chart.setAnimated(false);
+        chart.setMinSize(0, 0);
+        chart.setPrefHeight(230);
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        LocalDate today = LocalDate.now();
+        for (Event event : events) {
+            if (event.date == null || event.capacity == null) continue;
+            LocalDate eventDate = event.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            long days = java.time.temporal.ChronoUnit.DAYS.between(today, eventDate);
+            XYChart.Data<Number, Number> point = new XYChart.Data<>(days, event.capacity);
+            series.getData().add(point);
+            point.nodeProperty().addListener((obs, oldNode, node) -> {
+                if (node != null) Tooltip.install(node, new Tooltip(
+                        (event.name == null ? "Evento" : event.name)
+                        + "\nFecha: " + eventDate + "\nCapacidad: " + event.capacity));
+            });
+        }
+        chart.getData().add(series);
+        Label note = new Label("A la derecha: eventos futuros. Más arriba: mayor capacidad.");
+        note.setWrapText(true);
+        note.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
+        VBox card = new VBox(8, title, description, chart, note);
         card.setPadding(new Insets(16));
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPrefWidth(1);
         card.setStyle(CARD_STYLE);
+        VBox.setVgrow(chart, Priority.ALWAYS);
         return card;
     }
 }

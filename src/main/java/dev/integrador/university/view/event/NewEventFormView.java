@@ -1,6 +1,8 @@
 package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
+import java.util.List;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -18,6 +20,8 @@ import java.util.Date;
 
 public class NewEventFormView implements Builder<Region> {
     private final EventService service;
+    private final List<Venue> venues;
+    private final StringProperty venueId = new SimpleStringProperty("");
 
     private final StringProperty name = new SimpleStringProperty("");
     private final StringProperty description = new SimpleStringProperty("");
@@ -30,7 +34,12 @@ public class NewEventFormView implements Builder<Region> {
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
     public NewEventFormView(EventService service){
+        this(service, java.util.Collections.emptyList());
+    }
+
+    public NewEventFormView(EventService service, List<Venue> venues) {
         this.service = service;
+        this.venues = venues == null ? java.util.Collections.emptyList() : venues;
     }
 
     private Node createNameField() {
@@ -101,6 +110,28 @@ public class NewEventFormView implements Builder<Region> {
         return errorMessageLabel;
     }
 
+    private Node createVenueField() {
+        ComboBox<Venue> combo = new ComboBox<>();
+        combo.getItems().addAll(venues);
+        combo.setMaxWidth(Double.MAX_VALUE);
+        combo.setPromptText(venues.isEmpty() ? "Cargue los espacios desde la aplicación" : "Seleccione un espacio");
+        combo.setConverter(new javafx.util.StringConverter<Venue>() {
+            @Override public String toString(Venue venue) {
+                return venue == null ? "" : venue.name;
+            }
+            @Override public Venue fromString(String value) { return null; }
+        });
+        for (Venue venue : venues) {
+            if (java.util.Objects.equals(venue.venueId, venueId.get())) {
+                combo.setValue(venue);
+                break;
+            }
+        }
+        combo.valueProperty().addListener((obs, oldValue, newValue) ->
+                venueId.set(newValue == null ? "" : newValue.venueId));
+        return combo;
+    }
+
     @Override
     public Region build() {
         Node nameField = createNameField();
@@ -135,6 +166,8 @@ public class NewEventFormView implements Builder<Region> {
                 descriptionField,
                 new Label("Categoria:"),
                 categoryField,
+                new Label("Lugar del evento:"),
+                createVenueField(),
                 new Label("Capacidad:"),
                 capacityField,
                 times,
@@ -157,8 +190,13 @@ public class NewEventFormView implements Builder<Region> {
 
         submitButton.setOnAction(event -> {
             try {
+                if (venueId.get().isBlank()) {
+                    errorMessage.set("Seleccione el lugar del evento.");
+                    return;
+                }
                 Event events = new Event();
 
+                events.venueId = venueId.get();
                 events.name = name.getValue();
                 events.description = description.getValue();
                 events.category = category.getValue();

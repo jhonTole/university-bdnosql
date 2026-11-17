@@ -60,7 +60,7 @@ public class FXApplication extends Application {
             sidebar.setPrefWidth(190);
             sidebar.setMinWidth(190);
 
-            Button homeButton = createNavButton("Inicio", null, root, sidebar, () ->
+            Button homeButton = createNavButton("Inicio", "/img/home.png", root, sidebar, () ->
                     new DashboardView(
                             eventRepository.findAll(),
                             venueRepository.findAll(),

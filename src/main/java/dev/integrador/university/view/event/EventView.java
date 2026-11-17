@@ -1,6 +1,8 @@
 package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
+import java.util.List;
 import dev.integrador.university.model.EventModel;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -26,10 +28,18 @@ import java.util.Locale;
 public class EventView implements Builder<Region> {
     private final EventModel model;
     private final EventService service;
+    private final List<Venue> venues;
 
     public EventView(EventModel model, EventService service) {
         this.model = model;
         this.service = service;
+        this.venues = java.util.Collections.emptyList();
+    }
+
+    public EventView(EventModel model, EventService service, List<Venue> venues) {
+        this.model = model;
+        this.service = service;
+        this.venues = venues == null ? java.util.Collections.emptyList() : venues;
     }
 
     @Override
@@ -116,6 +126,12 @@ public class EventView implements Builder<Region> {
         categoryColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().category));
         tableView.getColumns().add(categoryColumn);
 
+        TableColumn<Event, String> venueColumn = new TableColumn<>("Lugar");
+        venueColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(venues.stream()
+                .filter(v -> java.util.Objects.equals(v.venueId, p.getValue().venueId))
+                .map(v -> v.name).findFirst().orElse("Sin espacio asignado")));
+        tableView.getColumns().add(venueColumn);
+
         TableColumn<Event, String> descriptionColumn = new TableColumn<>("Descripción");
         descriptionColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().description));
         tableView.getColumns().add(descriptionColumn);
@@ -149,7 +165,7 @@ public class EventView implements Builder<Region> {
         model.initModality(Modality.APPLICATION_MODAL);
         model.setTitle("Crear Evento - Universidad");
 
-        NewEventFormView newEventForm = new NewEventFormView(service);
+        NewEventFormView newEventForm = new NewEventFormView(service, venues);
         //Crea una instancia de scene para configurar el Style
         Scene scene = new Scene(newEventForm.build());
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
@@ -189,7 +205,7 @@ public class EventView implements Builder<Region> {
         modal.initModality(Modality.APPLICATION_MODAL);
         modal.setTitle("Actualizar Evento - Univesidad");
 
-        UpdateEventFormView updateEventForm = new UpdateEventFormView(service, eventToUpdate);
+        UpdateEventFormView updateEventForm = new UpdateEventFormView(service, eventToUpdate, venues);
         //Crea una instancia de scene para configurar el Style
         Scene scene = new Scene(updateEventForm.build());
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
