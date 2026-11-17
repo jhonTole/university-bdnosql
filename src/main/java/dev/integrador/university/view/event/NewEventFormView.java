@@ -23,8 +23,10 @@ public class NewEventFormView implements Builder<Region> {
     private final StringProperty description = new SimpleStringProperty("");
     private final StringProperty category = new SimpleStringProperty("");
     private final StringProperty capacity = new SimpleStringProperty("");
+    private final StringProperty venue = new SimpleStringProperty("Auditorio Mayor");
     private final StringProperty startTime = new SimpleStringProperty("08:00");
     private final StringProperty endTime = new SimpleStringProperty("10:00");
+
     private LocalDate date = LocalDate.now();
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
@@ -72,6 +74,17 @@ public class NewEventFormView implements Builder<Region> {
         return capacityField;
     }
 
+    private  Node createVenueField(StringProperty property){
+        ObservableList<String> listVenue = FXCollections.observableArrayList();
+        for (int h = 0; h < listVenue.size(); h++) {
+            listVenue.add(String.format("",h));
+        }
+        ComboBox<String> combo = new ComboBox<>(listVenue);
+        combo.setMaxWidth(Double.MAX_VALUE);
+        combo.valueProperty().bindBidirectional(property);
+        return combo;
+    }
+
     private Node createTimeCombo(StringProperty property) {
         ObservableList<String> slots = FXCollections.observableArrayList();
         for (int h = 0; h < 24; h++) {
@@ -107,25 +120,33 @@ public class NewEventFormView implements Builder<Region> {
         Node descriptionField = createDescriptionField();
         Node categoryField = createCategoryField();
         Node capacityField = createCapacityField();
+        Node venueField = createVenueField(venue);
         Node dateField = createDateField();
 
         // Agrupan texto y su campo
         VBox startGroup = new VBox(8, new Label("Fecha de Inicio:"), createTimeCombo(startTime));
         VBox endGroup = new VBox(8, new Label("Fecha de Fin:"), createTimeCombo(endTime));
-
+        VBox capacityGroup = new VBox(8, new Label("Capacidad:"), capacityField);
+        VBox venueGroup = new VBox(8, new Label("Espacio:"), venueField );
         // Ambos reciben el mismo ancho.
         startGroup.setPrefWidth(0);
         endGroup.setPrefWidth(0);
         startGroup.setMaxWidth(Double.MAX_VALUE);
         endGroup.setMaxWidth(Double.MAX_VALUE);
 
+        venueGroup.setMaxWidth(Double.MAX_VALUE);
+        venueGroup.setMaxWidth(Double.MAX_VALUE);
+
         // Agrupa horizontalmente de Izquierda a Derecha
         HBox buttons = new HBox(16,createSubmitButton(),createCancelButton());
         HBox times = new HBox(16, startGroup,endGroup);
+        HBox sizes = new HBox(16,capacityGroup,venueGroup);
 
         // Ambos grupos aprovechan el espacio horizontal.
         HBox.setHgrow(startGroup, Priority.ALWAYS);
         HBox.setHgrow(endGroup, Priority.ALWAYS);
+        HBox.setHgrow(capacityGroup, Priority.ALWAYS);
+        HBox.setHgrow(venueGroup, Priority.ALWAYS);
         Node errorMessageLabel = createErrorMessageLabel();
 
         VBox form = new VBox(
@@ -135,8 +156,7 @@ public class NewEventFormView implements Builder<Region> {
                 descriptionField,
                 new Label("Categoria:"),
                 categoryField,
-                new Label("Capacidad:"),
-                capacityField,
+                sizes,
                 times,
                 new Label("Fecha de Evento"),
                 dateField,
