@@ -238,9 +238,11 @@ public class DashboardView implements Builder<Region> {
         counts.forEach((category, total) -> data.add(new PieChart.Data(category, total)));
 
         PieChart chart = new PieChart(data);
-        chart.setLegendSide(Side.RIGHT);
+        chart.setLegendSide(Side.BOTTOM);   // leyenda abajo: ya no le quita ancho al círculo
         chart.setLabelsVisible(false);
-        chart.setPrefHeight(220);
+        chart.setMinSize(0, 0);             // deja que el gráfico se encoja dentro del cuadro
+        chart.setPrefSize(300, 220);
+        chart.setMaxHeight(240);            // tope para que no se desborde
         VBox.setVgrow(chart, Priority.ALWAYS);
 
         VBox card = new VBox(8, title, chart);
