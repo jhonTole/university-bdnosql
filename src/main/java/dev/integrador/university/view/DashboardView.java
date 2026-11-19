@@ -22,11 +22,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.util.Builder;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -238,7 +240,7 @@ public class DashboardView implements Builder<Region> {
     }
 
     private Node createCategoriesCard() {
-        Label title = new Label("Dispersión de eventos");
+        Label title = new Label("Dispersión y tendencia de eventos");
         title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
         Label description = new Label("Cada punto es un evento: fecha y capacidad.");
         description.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
@@ -251,19 +253,33 @@ public class DashboardView implements Builder<Region> {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Capacidad (personas)");
         yAxis.setForceZeroInRange(true);
-        ScatterChart<Number, Number> chart = new ScatterChart<>(xAxis, yAxis);
+
+        TrendScatterChart chart = new TrendScatterChart(xAxis, yAxis);
         chart.setLegendVisible(false);
         chart.setAnimated(false);
         chart.setMinSize(0, 0);
         chart.setPrefHeight(230);
+
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         LocalDate today = LocalDate.now();
+
+        // 1. Recolectar puntos válidos
+        List<double[]> points = new java.util.ArrayList<>();
+        double minX = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE;
+
         for (Event event : events) {
             if (event.date == null || event.capacity == null) continue;
             LocalDate eventDate = event.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            long days = java.time.temporal.ChronoUnit.DAYS.between(today, eventDate);
+            long days = ChronoUnit.DAYS.between(today, eventDate);
+
             XYChart.Data<Number, Number> point = new XYChart.Data<>(days, event.capacity);
             series.getData().add(point);
+
+            points.add(new double[]{days, event.capacity});
+            if (days < minX) minX = days;
+            if (days > maxX) maxX = days;
+
             point.nodeProperty().addListener((obs, oldNode, node) -> {
                 if (node != null) Tooltip.install(node, new Tooltip(
                         (event.name == null ? "Evento" : event.name)
@@ -271,9 +287,43 @@ public class DashboardView implements Builder<Region> {
             });
         }
         chart.getData().add(series);
-        Label note = new Label("A la derecha: eventos futuros. Más arriba: mayor capacidad.");
+
+        // 2. Cálculo de la regresión lineal (y = m*x + b) si hay al menos 2 puntos con X distinta
+        String trendInfo = "A la derecha: eventos futuros. Más arriba: mayor capacidad.";
+        if (points.size() >= 2 && maxX > minX) {
+            double n = points.size();
+            double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for (double[] p : points) {
+                sumX += p[0];
+                sumY += p[1];
+                sumXY += p[0] * p[1];
+                sumX2 += p[0] * p[0];
+            }
+
+            double denominator = (n * sumX2) - (sumX * sumX);
+            if (Math.abs(denominator) > 1e-6) {
+                double slope = ((n * sumXY) - (sumX * sumY)) / denominator;
+                double intercept = (sumY - (slope * sumX)) / n;
+                double y1 = slope * minX + intercept;
+                double y2 = slope * maxX + intercept;
+                chart.setTrendLine(minX, y1, maxX, y2);
+                if (slope > 0.05) {
+                    trendInfo = String.format(java.util.Locale.US,
+                            "Tendencia CRECIENTE (+%.1f cupos/día). Línea roja punteada.", slope);
+                } else if (slope < -0.05) {
+                    trendInfo = String.format(java.util.Locale.US,
+                            "Tendencia DECRECIENTE (%.1f cupos/día). Línea roja punteada.", slope);
+                } else {
+                    trendInfo = "Tendencia CONSTANTE (estable). Línea roja punteada.";
+                }
+            }
+        } else if (points.size() == 1) {
+            trendInfo = "Registra al menos 2 eventos en días distintos para trazar la línea de tendencia.";
+        }
+
+        Label note = new Label(trendInfo);
         note.setWrapText(true);
-        note.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
+        note.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + "; -fx-font-weight: bold;");
         VBox card = new VBox(8, title, description, chart, note);
         card.setPadding(new Insets(16));
         card.setMaxWidth(Double.MAX_VALUE);
@@ -281,5 +331,38 @@ public class DashboardView implements Builder<Region> {
         card.setStyle(CARD_STYLE);
         VBox.setVgrow(chart, Priority.ALWAYS);
         return card;
+    }
+    // Gráfico de dispersión personalizado con línea de regresión lineal
+    private static class TrendScatterChart extends ScatterChart<Number, Number> {
+        private final Line trendLine = new Line();
+        private Double x1, y1, x2, y2;
+        public TrendScatterChart(NumberAxis xAxis, NumberAxis yAxis) {
+            super(xAxis, yAxis);
+            trendLine.setStroke(Color.web("#E11D48")); // Rojo / coral visible
+            trendLine.setStrokeWidth(2.5);
+            trendLine.getStrokeDashArray().addAll(6.0, 4.0); // Línea punteada
+            trendLine.setManaged(false);
+            trendLine.setVisible(false);
+            getPlotChildren().add(trendLine);
+        }
+        public void setTrendLine(double x1, double y1, double x2, double y2) {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+            this.trendLine.setVisible(true);
+            requestLayout();
+        }
+        @Override
+        protected void layoutPlotChildren() {
+            super.layoutPlotChildren();
+            if (x1 != null && trendLine.isVisible()) {
+                trendLine.setStartX(getXAxis().getDisplayPosition(x1));
+                trendLine.setStartY(getYAxis().getDisplayPosition(y1));
+                trendLine.setEndX(getXAxis().getDisplayPosition(x2));
+                trendLine.setEndY(getYAxis().getDisplayPosition(y2));
+                trendLine.toFront();
+            }
+        }
     }
 }

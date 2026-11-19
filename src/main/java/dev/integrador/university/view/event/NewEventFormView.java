@@ -194,7 +194,7 @@ public class NewEventFormView implements Builder<Region> {
                 }
 
                 Event events = new Event();
-                events.eventId = venueId.get();
+                events.venueId = venueId.get();
                 events.name = name.getValue();
                 events.description = description.getValue();
                 events.category = category.getValue();
