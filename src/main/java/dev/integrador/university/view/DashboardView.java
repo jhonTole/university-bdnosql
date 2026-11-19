@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -24,10 +25,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.util.Builder;
+import javafx.util.StringConverter;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
@@ -158,40 +161,51 @@ public class DashboardView implements Builder<Region> {
         Label title = new Label("Próximos Eventos");
         title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
 
-        VBox card = new VBox(title);
-        card.setSpacing(8);
-        card.setPadding(new Insets(16));
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setPrefWidth(1);
-        card.setStyle(CARD_STYLE);
-
-        // Eventos desde hoy en adelante, los 3 más cercanos
+        // Eventos desde hoy en adelante
         Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
         List<Event> upcoming = events.stream()
                 .filter(e -> e.date != null && !e.date.before(today))
                 .sorted(Comparator.comparing((Event e) -> e.date))
-                .limit(3)
-                .toList();
+                .toList(); // muestra todos
+
+        VBox eventList = new VBox();
+        eventList.setSpacing(0);
 
         if (upcoming.isEmpty()) {
             Label empty = new Label("No hay eventos próximos");
             empty.setStyle("-fx-text-fill: " + MUTED + ";");
-            card.getChildren().add(empty);
-            return card;
+            empty.setPadding(new Insets(10, 0, 0, 0));
+            eventList.getChildren().add(empty);
+        }else {
+            Map<String, String> venueNames = new HashMap<>();
+            for (Venue venue : venues) {
+                venueNames.put(venue.venueId, venue.name);
+            }
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            for (Event e : upcoming) {
+                String place = venueNames.getOrDefault(e.venueId, "Sin espacio");
+                String time = e.startTime == null ? "" : e.startTime;
+                eventList.getChildren().add(createEventRow(e.name, place, dateFormat.format(e.date), time));
+            }
         }
+        // ScrollPane transparente para que aproveche toda la altura de la tarjeta
+        ScrollPane scrollPane = new ScrollPane(eventList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle(
+                "-fx-background: transparent;" +
+                        " -fx-background-color: transparent;" +
+                        " -fx-border-color: transparent;" +
+                        " color: transparent;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        // Se declara la tarjeta una sola vez aquí
+        VBox card = new VBox(8, title, scrollPane);
+        card.setPadding(new Insets(16));
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.setPrefWidth(1);
+        card.setStyle(CARD_STYLE);
+        VBox.setVgrow(card, Priority.ALWAYS);
 
-        // id del espacio -> nombre del espacio
-        Map<String, String> venueNames = new HashMap<>();
-        for (Venue venue : venues) {
-            venueNames.put(venue.venueId, venue.name);
-        }
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-
-        for (Event e : upcoming) {
-            String place = venueNames.getOrDefault(e.venueId, "Sin espacio");
-            String time = e.startTime == null ? "" : e.startTime;
-            card.getChildren().add(createEventRow(e.name, place, dateFormat.format(e.date), time));
-        }
         return card;
     }
 
@@ -199,7 +213,7 @@ public class DashboardView implements Builder<Region> {
         Node icon = safeIcon("/img/eventsCalendar.png", "E", 26);
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: bold;");
+        nameLabel.setStyle("-fx-font-weight: bold;-fx-text-fill: #111827;");
         Label placeLabel = new Label(place);
         placeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
         VBox info = new VBox(2, nameLabel, placeLabel);
@@ -208,7 +222,7 @@ public class DashboardView implements Builder<Region> {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Label dateLabel = new Label(date);
-        dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #111827;");
         Label timeLabel = new Label(time);
         timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
         VBox when = new VBox(2, dateLabel, timeLabel);
@@ -246,11 +260,29 @@ public class DashboardView implements Builder<Region> {
         description.setStyle("-fx-font-size: 11px; -fx-text-fill: " + MUTED + ";");
         description.setWrapText(true);
 
-        // X: días a partir de hoy. Y: capacidad registrada del evento.
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM");
+        // Eje X: Ahora muestra fechas reales (ej: 19/11,    20/11, 25/11) Y: capacidad registrada del evento.
         NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("Días desde hoy");
+        xAxis.setLabel("Fechas del evento");
         xAxis.setForceZeroInRange(false);
         NumberAxis yAxis = new NumberAxis();
+        xAxis.setMinorTickVisible(false); // Quita divisiones intermedias confusas
+        xAxis.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                if (object == null) return "";
+                double val = object.doubleValue();
+                long days = Math.round(val);
+                // Solo muestra texto en días enteros, no en decimales
+                if (Math.abs(val - days) > 0.1) return "";
+                return today.plusDays(days).format(dateFormatter);
+            }
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
         yAxis.setLabel("Capacidad (personas)");
         yAxis.setForceZeroInRange(true);
 
@@ -261,7 +293,6 @@ public class DashboardView implements Builder<Region> {
         chart.setPrefHeight(230);
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        LocalDate today = LocalDate.now();
 
         // 1. Recolectar puntos válidos
         List<double[]> points = new java.util.ArrayList<>();
