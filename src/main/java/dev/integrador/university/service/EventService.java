@@ -57,19 +57,14 @@ public class EventService {
         if (event.name.trim().isBlank()){
             throw new IllegalArgumentException("Nombre no valido");
         }
-
-        if (event.description.trim().isBlank()){
-            throw new IllegalArgumentException("Descripcion no valida");
-        }
-
         if (event.category.trim().isBlank()){
             throw new IllegalArgumentException("Categoria no valida");
         }
         if (event.startTime.trim().isBlank()){
-            throw new IllegalArgumentException("Categoria no valida");
+            throw new IllegalArgumentException("Fecha de inicio no valida");
         }
         if (event.endTime.trim().isBlank()){
-            throw new IllegalArgumentException("Categoria no valida");
+            throw new IllegalArgumentException("fecha de fin no valida");
         }
         repository.update(event);
     }

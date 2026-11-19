@@ -1,6 +1,10 @@
 package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
+
+import java.util.Collections;
+import java.util.List;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -16,13 +20,17 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Builder;
+import javafx.util.StringConverter;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Objects;
 
 public class UpdateEventFormView implements Builder<Region> {
     private final EventService service;
+    private final List<Venue> venues;
+    private final StringProperty venueId = new SimpleStringProperty("");
     private final Event eventToUpdate;
 
     private final StringProperty name = new SimpleStringProperty("");
@@ -36,10 +44,15 @@ public class UpdateEventFormView implements Builder<Region> {
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
     public UpdateEventFormView(EventService service, Event eventToUpdate){
+        this(service, eventToUpdate, Collections.emptyList());
+    }
 
+    public UpdateEventFormView(EventService service, Event eventToUpdate, List<Venue> venues) {
         this.service = service;
+        this.venues = venues == null ? Collections.emptyList() : venues;
         this.eventToUpdate = eventToUpdate;
 
+        venueId.set(eventToUpdate.venueId == null ? "" : eventToUpdate.venueId);
         name.setValue(eventToUpdate.name);
         description.setValue(eventToUpdate.description);
         category.setValue(eventToUpdate.category);
@@ -103,39 +116,75 @@ public class UpdateEventFormView implements Builder<Region> {
         return errorMessageLabel;
     }
 
+    private Node createVenueField() {
+        ComboBox<Venue> combo = new ComboBox<>();
+        combo.getItems().addAll(venues);
+        combo.setMaxWidth(Double.MAX_VALUE);
+        combo.setPromptText(venues.isEmpty() ? "Cargue los espacios desde la aplicación" : "Seleccione un espacio");
+        combo.setConverter(new StringConverter<Venue>() {
+            @Override public String toString(Venue venue) {
+                return venue == null ? "" : venue.name;
+            }
+            @Override public Venue fromString(String value) { return null; }
+        });
+        for (Venue venue : venues) {
+            if (Objects.equals(venue.venueId, venueId.get())) {
+                combo.setValue(venue);
+                break;
+            }
+        }
+        combo.valueProperty().addListener((obs, oldValue, newValue) ->
+                venueId.set(newValue == null ? "" : newValue.venueId));
+        return combo;
+    }
+
     @Override
     public Region build() {
+        Node nameField = createTextField(name);
+        Node descriptionField = createTextField(description);
+        Node categoryField = createTextField(category);
+        Node capacityField = createCapacityField();
+        Node venueField = createVenueField();
+        Node dateField = createDateField();
+
         // Agrupan texto y su campo
         VBox startGroup = new VBox(8, new Label("Fecha de Inicio:"), createTextField(startTime));
         VBox endGroup = new VBox(8, new Label("Fecha de Fin:"), createTextField(endTime));
-
+        VBox capacityGroup = new VBox(8, new Label("Capacidad:"), capacityField);
+        VBox venueGroup = new VBox(8, new Label("Espacio:"), venueField);
         // Ambos reciben el mismo ancho.
         startGroup.setPrefWidth(0);
         endGroup.setPrefWidth(0);
         startGroup.setMaxWidth(Double.MAX_VALUE);
         endGroup.setMaxWidth(Double.MAX_VALUE);
+        venueGroup.setMaxWidth(Double.MAX_VALUE);
+        capacityGroup.setMaxWidth(Double.MAX_VALUE);
 
         // Agrupa horizontalmente de Izquierda a Derecha
         HBox buttons = new HBox(20, createSubmitButton(),createCancelButton());
         HBox times = new HBox(16, startGroup,endGroup);
+        HBox sizes =  new HBox(16, capacityGroup, venueGroup);
 
         // Ambos grupos aprovechan el espacio horizontal.
         HBox.setHgrow(startGroup, Priority.ALWAYS);
         HBox.setHgrow(endGroup, Priority.ALWAYS);
+        HBox.setHgrow(capacityGroup, Priority.ALWAYS);
+        HBox.setHgrow(venueGroup, Priority.ALWAYS);
+
+        Node errorMessageLabel = createErrorMessageLabel();
 
         VBox form = new VBox(
                 new Label("Nombre:"),
-                createTextField(name),
+                nameField,
                 new Label("Descripción:"),
-                createTextField(description),
+                descriptionField,
                 new Label("Categoría:"),
-                createTextField(category),
-                new Label("Capacidad:"),
-                createCapacityField(),
+                categoryField,
+                sizes,
                 new Label("Fecha del evento:"),
-                createDateField(),
+                dateField,
                 times,
-                createErrorMessageLabel(),
+                errorMessageLabel,
                 buttons
         );
 
@@ -152,12 +201,16 @@ public class UpdateEventFormView implements Builder<Region> {
 
         submitButton.setOnAction(event -> {
             try {// Copia para no modificar el objeto de la tabla si algo falla
+                if (venueId.get().isBlank()) {
+                    errorMessage.set("Seleccione el lugar del evento.");
+                    return;
+                }
                 Event updated = new Event();
 
                 // replaceOneById reemplaza TODO el documento: conservamos
                 // los campos que este formulario no edita
                 updated.eventId = eventToUpdate.eventId;
-                updated.venueId = eventToUpdate.venueId;
+                updated.venueId = venueId.get();
 
                 updated.name = name.getValue();
                 updated.description = description.getValue();
