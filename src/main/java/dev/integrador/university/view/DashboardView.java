@@ -183,7 +183,10 @@ public class DashboardView implements Builder<Region> {
             }
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             for (Event e : upcoming) {
-                String place = venueNames.getOrDefault(e.venueId, "Sin espacio");
+                String place = "Sin espacio asignado";
+                if (e.venueId != null && !e.venueId.isBlank()) {
+                    place = venueNames.getOrDefault(e.venueId, e.venueId);
+                }
                 String time = e.startTime == null ? "" : e.startTime;
                 eventList.getChildren().add(createEventRow(e.name, place, dateFormat.format(e.date), time));
             }
