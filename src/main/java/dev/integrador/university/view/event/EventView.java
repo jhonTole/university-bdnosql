@@ -4,6 +4,7 @@ import dev.integrador.university.entities.Event;
 import dev.integrador.university.entities.Venue;
 import java.util.List;
 import dev.integrador.university.model.EventModel;
+import dev.integrador.university.repository.VenueRepository;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
@@ -28,18 +29,14 @@ import java.util.Locale;
 public class EventView implements Builder<Region> {
     private final EventModel model;
     private final EventService service;
-    private final List<Venue> venues;
+    private final VenueRepository venueRepository; // antes List<Venue>
 
-    public EventView(EventModel model, EventService service) {
+
+
+    public EventView(EventModel model, EventService service, VenueRepository venueRepository) {
         this.model = model;
         this.service = service;
-        this.venues = java.util.Collections.emptyList();
-    }
-
-    public EventView(EventModel model, EventService service, List<Venue> venues) {
-        this.model = model;
-        this.service = service;
-        this.venues = venues == null ? java.util.Collections.emptyList() : venues;
+        this.venueRepository = venueRepository;
     }
 
     @Override
@@ -127,9 +124,13 @@ public class EventView implements Builder<Region> {
         tableView.getColumns().add(categoryColumn);
 
         TableColumn<Event, String> venueColumn = new TableColumn<>("Lugar");
-        venueColumn.setCellValueFactory(p -> new ReadOnlyStringWrapper(venues.stream()
-                .filter(v -> java.util.Objects.equals(v.venueId, p.getValue().venueId))
-                .map(v -> v.name).findFirst().orElse("Sin espacio asignado")));
+        venueColumn.setCellValueFactory(p -> {
+                    // Carga la lista fresca cada vez que se renderiza la celda
+                    List<Venue> currentVenues = venueRepository.findAll();
+                    return new ReadOnlyStringWrapper(currentVenues.stream()
+                            .filter(v -> java.util.Objects.equals(v.venueId, p.getValue().venueId))
+                            .map(v -> v.name).findFirst().orElse("Sin espacio asignado"));
+                });
         tableView.getColumns().add(venueColumn);
 
         TableColumn<Event, String> descriptionColumn = new TableColumn<>("Descripción");
@@ -159,7 +160,7 @@ public class EventView implements Builder<Region> {
         return tableView;
     }
 
-    private Stage createNewEventModal(){
+    private Stage createNewEventModal(List<Venue> venues){ // recibe la lista
         Stage model = new Stage();
 
         model.initModality(Modality.APPLICATION_MODAL);
@@ -178,8 +179,20 @@ public class EventView implements Builder<Region> {
     private Node createNewEventButton(){
         Button button = new Button("+ Crear Evento");
         button.getStyleClass().add("btn-create");
-        Stage newEventModal = createNewEventModal();
         button.setOnAction(event -> {
+            // Consultar venues frescos cada vez
+            List<Venue> currentVenues = venueRepository.findAll();
+            // Si no hay espacios, mostrar alerta y NO abrir el formulario
+            if (currentVenues.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Sin espacios");
+                alert.setHeaderText("No hay espacios disponibles");
+                alert.setContentText("Primero debes crear al menos un espacio antes de crear un evento.");
+                alert.showAndWait();
+                return;
+            }
+            // el modal se paso aqui para que reciba la lista actualizada
+            Stage newEventModal = createNewEventModal(currentVenues);
             newEventModal.showAndWait();
         });
 
@@ -188,18 +201,27 @@ public class EventView implements Builder<Region> {
 
     private Node createUpdateEventButton(){
         Button button = new Button("Actualizar Evento");
-        button.getStyleClass().add("btn-update"); // asigna la clase btn-delete como en html "class=btn-update"
+        button.getStyleClass().add("btn-update"); // asigna la clase btn-update como en html "class=btn-update"
         button.disableProperty().bind(model.selectedEvent.isNull());
         button.setOnAction(event -> {
+            List<Venue> currentVenues = venueRepository.findAll();
+            if (currentVenues.isEmpty()) { //si la lista esta vacia mostrar la alerta
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Sin espacios");
+                alert.setHeaderText("No hay espacios disponibles");
+                alert.setContentText("Primero debes crear al menos un espacio.");
+                alert.showAndWait();
+                return;
+            }
             Event selectedEvent = model.selectedEvent.get();
-            Stage updateEventModal = createUpdateEventModal(selectedEvent);
+            Stage updateEventModal = createUpdateEventModal(selectedEvent, currentVenues);
             updateEventModal.showAndWait();
         });
 
         return button;
     }
 
-    private Stage createUpdateEventModal(Event eventToUpdate){
+    private Stage createUpdateEventModal(Event eventToUpdate, List<Venue> venues){
         Stage modal = new Stage();
         // stage = ventana
         modal.initModality(Modality.APPLICATION_MODAL);

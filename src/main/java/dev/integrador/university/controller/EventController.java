@@ -2,6 +2,7 @@ package dev.integrador.university.controller;
 
 import dev.integrador.university.model.EventModel;
 import dev.integrador.university.repository.EventRepository;
+import dev.integrador.university.repository.VenueRepository;
 import dev.integrador.university.view.event.EventView;
 import javafx.scene.layout.Region;
 import dev.integrador.university.service.EventService;
@@ -10,10 +11,11 @@ public class EventController {
     private final EventView view;
     private final EventService service;
 
-    public EventController(EventRepository repository) {
+    public EventController(EventRepository repository, VenueRepository venueRepository) {
         EventModel model = new EventModel();
         this.service = new EventService(repository, model);
-        this.view = new EventView(model,service);
+        this.view = new EventView(model, service, venueRepository);
+        // pasar el repository, no una lista
     }
     public Region getView(){
         service.findAllEvents();

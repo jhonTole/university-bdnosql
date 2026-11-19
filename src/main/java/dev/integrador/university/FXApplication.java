@@ -41,8 +41,12 @@ public class FXApplication extends Application {
             this.mongoClient = MongoClients.create(MONGODB_URI);
             MongoDatabase database = this.mongoClient.getDatabase("universitydb");
 
+            VenueRepository venueRepository = new VenueRepository(database);
+            VenueController venueController = new VenueController(venueRepository);
+            // se cambio el orden para que se cree este primero y añadirlo como parametro
+
             EventRepository eventRepository = new EventRepository(database);
-            EventController eventController = new EventController(eventRepository);
+            EventController eventController = new EventController(eventRepository, venueRepository);
 
             AttendeeRepository attendeeRepository = new AttendeeRepository(database);
             AttendeeController attendeeController = new AttendeeController(attendeeRepository);
@@ -50,8 +54,6 @@ public class FXApplication extends Application {
             RegistrationRepository registrationRepository = new RegistrationRepository(database);
             RegistrationController registrationController = new RegistrationController(registrationRepository);
 
-            VenueRepository venueRepository = new VenueRepository(database);
-            VenueController venueController = new VenueController(venueRepository);
 
             // Menú lateral + zona central (diseño del mockup del profe)
             BorderPane root = new BorderPane();

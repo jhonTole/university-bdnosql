@@ -1,6 +1,7 @@
 package dev.integrador.university.view.event;
 
 import dev.integrador.university.entities.Event;
+import dev.integrador.university.entities.Venue;
 import dev.integrador.university.service.EventService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -12,13 +13,17 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Builder;
+import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class NewEventFormView implements Builder<Region> {
     private final EventService service;
-
+    private final List<Venue> venues;
+    private final StringProperty venueId = new SimpleStringProperty("");
     private final StringProperty name = new SimpleStringProperty("");
     private final StringProperty description = new SimpleStringProperty("");
     private final StringProperty category = new SimpleStringProperty("");
@@ -31,8 +36,9 @@ public class NewEventFormView implements Builder<Region> {
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
-    public NewEventFormView(EventService service){
+    public NewEventFormView(EventService service, List<Venue> venues){
         this.service = service;
+        this.venues = venues == null ? Collections.emptyList() : venues;
     }
 
     private Node createNameField() {
@@ -74,14 +80,19 @@ public class NewEventFormView implements Builder<Region> {
         return capacityField;
     }
 
-    private  Node createVenueField(StringProperty property){
-        ObservableList<String> listVenue = FXCollections.observableArrayList();
-        for (int h = 0; h < listVenue.size(); h++) {
-            listVenue.add(String.format("",h));
-        }
-        ComboBox<String> combo = new ComboBox<>(listVenue);
+    private  Node createVenueField(){
+        ComboBox<Venue> combo = new ComboBox<>();
         combo.setMaxWidth(Double.MAX_VALUE);
-        combo.valueProperty().bindBidirectional(property);
+
+        combo.getItems().addAll(venues);
+        combo.setPromptText("Seleccione un espacio");
+        combo.setConverter(new StringConverter<Venue>() {
+            @Override public String toString(Venue venue) {return venue == null ? "" : venue.name;}
+            @Override public Venue fromString(String value) { return null; }
+        });
+
+        combo.valueProperty().addListener((obs, oldVal, newVal) ->
+                venueId.set(newVal == null ? "" : newVal.venueId));
         return combo;
     }
 
@@ -120,7 +131,7 @@ public class NewEventFormView implements Builder<Region> {
         Node descriptionField = createDescriptionField();
         Node categoryField = createCategoryField();
         Node capacityField = createCapacityField();
-        Node venueField = createVenueField(venue);
+        Node venueField = createVenueField();
         Node dateField = createDateField();
 
         // Agrupan texto y su campo
@@ -177,8 +188,13 @@ public class NewEventFormView implements Builder<Region> {
 
         submitButton.setOnAction(event -> {
             try {
-                Event events = new Event();
+                if (venueId.get().isBlank()) {
+                    errorMessage.set("Seleccione el espacio del evento.");
+                    return;
+                }
 
+                Event events = new Event();
+                events.eventId = venueId.get();
                 events.name = name.getValue();
                 events.description = description.getValue();
                 events.category = category.getValue();
